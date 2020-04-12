@@ -1,0 +1,43 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+cc_library(
+    name = "http",
+    srcs = [
+        "header.hpp",
+        "request.cpp",
+        "request.hpp",
+        "request_formatter.cpp",
+        "request_formatter.hpp",
+        "request_parser.cpp",
+        "request_parser.hpp",
+    ],
+    deps = [
+        "//types:error",
+        "//util:string_util",
+        "@abseil//absl/strings",
+        "@abseil//absl/types:optional",
+    ],
+)
+
+cc_test(
+    name = "request_formatter_test",
+    srcs = [
+        "request_formatter_test.cpp",
+    ],
+    deps = [
+        ":http",
+        "@asio",
+    ],
+)
+
+cc_test(
+    name = "http_test",
+    srcs = [
+        "http_test.cpp",
+    ],
+    deps = [
+        ":http",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)

@@ -1,0 +1,45 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+cc_library(
+    name = "thread_group",
+    srcs = [
+        "thread_group.cpp",
+    ],
+    hdrs = [
+        "thread_group.hpp",
+    ],
+)
+
+cc_test(
+    name = "thread_group_test",
+    srcs = ["thread_group_test.cpp"],
+    deps = [
+        ":thread_group",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "worker",
+    srcs = [
+        "worker.cpp",
+    ],
+    hdrs = [
+        "worker.hpp",
+    ],
+    deps = [
+        ":thread_group",
+        "@asio",
+    ],
+)
+
+cc_test(
+    name = "worker_test",
+    srcs = ["worker_test.cpp"],
+    deps = [
+        ":worker",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)

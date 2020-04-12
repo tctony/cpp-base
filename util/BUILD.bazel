@@ -1,0 +1,29 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+cc_library(
+    name = "string_util",
+    srcs = [
+        "string_util.cpp",
+    ],
+    hdrs = [
+        "string_util.hpp",
+    ],
+    copts = [],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@abseil//absl/strings",
+    ],
+)
+
+cc_test(
+    name = "string_util_test",
+    srcs = [
+        "string_util_test.cpp",
+    ],
+    copts = [],
+    deps = [
+        ":string_util",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
