@@ -10,6 +10,8 @@ cc_library(
         "request_formatter.hpp",
         "request_parser.cpp",
         "request_parser.hpp",
+        "url_decode.hpp",
+        "url_encode.hpp",
     ],
     deps = [
         "//types:error",

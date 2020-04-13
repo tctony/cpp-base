@@ -37,17 +37,25 @@ int main(int argc, char const* argv[]) {
   const string host = "httpbin.org";
 
   {
-    Request get("GET", "/get");
+    Request get("/get");
     get.headerList.setHost(host);
     get.headerList.setConnectionClose();
     sendRequest(host, get);
   }
 
   {
-    Request post("POST", "/post");
+    Request post("/post", Request::POST);
     post.headerList.setHost(host);
     post.headerList.setConnectionClose();
     post.setJSONBody("{}");
+    sendRequest(host, post);
+  }
+
+  {
+    Request post("/post", Request::POST);
+    post.headerList.setHost(host);
+    post.headerList.setConnectionClose();
+    post.setFormData({{"name", "tony tang"}, {"other", "$123"}});
     sendRequest(host, post);
   }
 

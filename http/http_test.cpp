@@ -4,6 +4,8 @@
 
 #include "request_formatter.hpp"
 #include "request_parser.hpp"
+#include "url_decode.hpp"
+#include "url_encode.hpp"
 
 using namespace base::http;
 using base::Error;
@@ -16,10 +18,11 @@ void ExpectEQRequest(const Request& a, const Request& b) {
   EXPECT_EQ(a.http_version_major, b.http_version_major);
   EXPECT_EQ(a.http_version_minor, b.http_version_minor);
   EXPECT_EQ(a.headerList.headers.size(), b.headerList.headers.size());
+  EXPECT_EQ(a.body(), b.body());
 }
 
-TEST(Request, get_format_and_parse) {
-  Request request(Request::GET, "/get");
+TEST(Http, get_format_and_parse) {
+  Request request("/get");
   request.headerList.setHost(host);
   request.headerList.setConnectionClose();
 
@@ -30,8 +33,8 @@ TEST(Request, get_format_and_parse) {
   ExpectEQRequest(request, parsedRequest);
 }
 
-TEST(Request, post_format_and_parse) {
-  Request request(Request::POST, "/post");
+TEST(Http, post_format_and_parse) {
+  Request request("/post", Request::POST);
   request.headerList.setHost(host);
   request.headerList.setConnectionClose();
   request.setJSONBody("{}");
@@ -41,4 +44,35 @@ TEST(Request, post_format_and_parse) {
 
   auto [error, parsedRequest] = RequestParser::parse(reqBuf);
   ExpectEQRequest(request, parsedRequest);
+}
+
+TEST(Url, encode_decode) {
+  std::string str("1aA_-.~ \n");
+
+  auto encoded = urlEncode(str);
+  std::cout << encoded << std::endl;
+
+  auto decoded = urlDecode(encoded);
+  std::cout << decoded << std::endl;
+
+  EXPECT_EQ(str, decoded);
+}
+
+TEST(Http, formData) {
+  Request request("/post");
+  request.headerList.setHost(host);
+  request.headerList.setConnectionClose();
+  // will set method to POST
+  std::map<std::string, std::string> data{{"name", "tony tang"},
+                                          {"other", "$123"}};
+  request.setFormData(data);
+
+  std::string reqBuf = RequestFormatter::format(request);
+  std::cout << reqBuf << std::endl;
+
+  auto [error, parsedRequest] = RequestParser::parse(reqBuf);
+  ExpectEQRequest(request, parsedRequest);
+
+  auto parsedFormData = parsedRequest.getFormData();
+  EXPECT_EQ(data, parsedFormData);
 }

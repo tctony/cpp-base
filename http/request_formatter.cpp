@@ -25,8 +25,8 @@ std::string RequestFormatter::toString() {
   }
   ss << "\r\n";
   if ("POST" == util::toUpperCase(request_.method) &&
-      request_.body.size() > 0) {
-    ss << request_.body;
+      request_.body_.size() > 0) {
+    ss << request_.body_;
   }
   return ss.str();
 }

@@ -1,7 +1,5 @@
 #include "request_parser.hpp"
 
-#include <iostream>
-
 #include "absl/strings/str_split.h"
 #include "request.hpp"
 #include "util/string_util.hpp"
@@ -45,6 +43,9 @@ RequestParser::ParseStatus RequestParser::consume(char input) {
       }
     case method:
       if (' ' == input) {
+        if (request_.method != Request::GET && request_.method != Request::POST)
+          return bad;
+
         state_ = uri;
         return indeterminate;
       } else if (!isalpha(input)) {
@@ -195,10 +196,27 @@ RequestParser::ParseStatus RequestParser::consume(char input) {
     }
     case expecting_newline_3: {
       if ('\n' == input) {
-        return good;
+        if (Request::GET == request_.method)
+          return good;
+        else {  // POST
+          bodySize_ = std::atoi(request_.headerList.contentLength().c_str());
+          if (bodySize_ <= 0)
+            return bad;
+          else {
+            state_ = expecting_body;
+            return indeterminate;
+          }
+        }
       } else {
         return bad;
       }
+    }
+    case expecting_body: {
+      request_.body_.push_back(input);
+      if (--bodySize_ == 0)
+        return good;
+      else
+        return indeterminate;
     }
     default:
       return bad;
@@ -206,5 +224,4 @@ RequestParser::ParseStatus RequestParser::consume(char input) {
 }
 
 }  // namespace http
-
 }  // namespace base

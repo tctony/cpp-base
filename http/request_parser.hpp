@@ -58,13 +58,13 @@ class RequestParser {
     header_line,
     expecting_newline_2,
     expecting_newline_3,
-    // expecting_body,
+    expecting_body,
   } state_;
   std::string headerLine_;
+  int bodySize_;
 };
 
 }  // namespace http
-
 }  // namespace base
 
 #endif

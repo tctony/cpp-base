@@ -53,6 +53,9 @@ struct HeaderList {
   void setContentLength(const std::string& content_length) {
     set("Content-Length", content_length);
   }
+  const std::string contentLength() {
+    return get("Content-Length").value_or("0");
+  }
 
   void setConnectionClose() { set("Connection", "close"); }
 };
