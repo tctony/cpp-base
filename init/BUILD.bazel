@@ -1,0 +1,27 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+cc_library(
+    name = "init_registry",
+    srcs = [
+        "init_registry.cpp",
+        "init_registry.hpp",
+    ],
+    visibility = [
+        "//visibility:public",
+    ],
+    deps = [
+        "//types:error",
+        "@abseil//absl/types:any",
+    ],
+)
+
+cc_test(
+    name = "init_registry_test",
+    srcs = [
+        "init_registry_test.cpp",
+    ],
+    deps = [
+        ":init_registry",
+        "@gtest//:gtest_main",
+    ],
+)
