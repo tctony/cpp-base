@@ -1,0 +1,27 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+zlog_srcs = [
+    "console_appender.cpp",
+    "zlog.cpp",
+]
+
+zlog_hdrs = [
+    "console_appender.h",
+    "preprocessor.h",
+    "zlog.h",
+]
+
+cc_library(
+    name = "zlog",
+    srcs = zlog_srcs,
+    hdrs = zlog_hdrs,
+    visibility = ["//visibility:public"],
+)
+
+cc_test(
+    name = "zlog_test",
+    srcs = ["zlog_test.cpp"],
+    deps = [
+        ":zlog",
+    ],
+)
