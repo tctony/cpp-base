@@ -27,3 +27,18 @@ cc_test(
         "@gtest//:gtest_main",
     ],
 )
+
+cc_library(
+    name = "time_util",
+    hdrs = ["time_util.hpp"],
+    visibility = ["//visibility:public"],
+)
+
+cc_test(
+    name = "time_util_test",
+    srcs = ["time_util_test.cpp"],
+    deps = [
+        ":time_util",
+        "@gtest//:gtest_main",
+    ],
+)
