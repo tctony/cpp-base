@@ -13,19 +13,18 @@ int main(int argc, char const *argv[]) {
   std::string c = "str";
 
   zverbose_function(a);
-  zdebug_function(a, b);
-  zinfo_function(a, b, c);
+  // zdebug_function(a, b);
+  // zinfo_function(a, b, c);
 
-  {
-    zverbose_scope("hahahah: %_", 1);
-    zdebug_scope("aaaa");
-    zinfo_scope("bbb");
-  }
+  // {
+  //   zverbose_scope("hahahah: %_", 1);
+  //   zdebug_scope("aaaa");
+  //   zinfo_scope("bbb");
+  // }
 
-  zverbose("verbose: ")(a, b, c);
-  zdebug("debug: ")(a, b, c);
-  zinfo("info: ")(a, b, c);
-  zwarn("warn: ")(a, b, c);
-  zerror("error: ")(a, b, c);
-  return 0;
+  // zverbose("verbose: ")(a, b, c);
+  // zdebug("debug: ")(a, b, c);
+  // zinfo("info: ")(a, b, c);
+  // zwarn("warn: ")(a, b, c);
+  // zerror("error: ")(a, b, c);
 }

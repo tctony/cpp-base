@@ -1,0 +1,26 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("//:.bazel_util.bzl", "config_settings_from_string_flag")
+load("//zlog:build_setting.bzl", "get_zlog_copts_config")
+
+config_settings_from_string_flag(
+    config = [
+        "worsest",
+    ],
+    default_value = "simple",
+    flag_name = "log_case",
+)
+
+cc_binary(
+    name = "main",
+    srcs = [
+        "log_case.h",
+        "main.cpp",
+    ] + select({
+        "//conditions:default": ["log_case_simple.cpp"],
+        ":log_case_worsest": ["log_case_worsest.cpp"],
+    }),
+    copts = get_zlog_copts_config(),
+    deps = [
+        "//zlog:zlog_configurable",
+    ],
+)

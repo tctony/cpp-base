@@ -65,6 +65,9 @@
 #include <thread>
 #include <type_traits>
 #include <vector>
+#ifdef LIGHT_WEIGHT_STRING_ENABLED
+#include <forward_list>
+#endif
 
 #include "preprocessor.h"
 
@@ -312,6 +315,112 @@ enum LogLevel {
   kLevelNone    // Special level used to disable all log messages.
 };
 
+#ifdef LIGHT_WEIGHT_STRING_ENABLED
+
+void* lws_allocate(std::size_t size);
+void lws_deallocate(void* p);
+// A light weight string that can be used to avoid memory copy and reallocation
+// during string create and append actions.
+struct LightWeightString {
+  template <typename T>
+  struct Allocator {
+    using value_type = T;
+    using pointer = value_type*;
+    static pointer allocate(std::size_t size) {
+      void* p = lws_allocate(size);
+      return reinterpret_cast<pointer>(p);
+    }
+    static void deallocate(pointer p, std::size_t size) {
+      if (p != nullptr) lws_deallocate(p);
+    }
+  };
+
+  enum {
+    undefined = 0,
+    // reference to another string ends with '\0' via `data` and `length`
+    string_view = 1,
+    // reference to part of another string(so it might not ends with '\0') via
+    // `data` and `length`
+    partial_string_view = 2,
+    // hold malloced string(ends with '\0') via `data`, should be free in
+    // destructor
+    malloced_string = 3,
+    // hold a string whose memory was just moved from outside to `string`
+    std_string = 4,
+  } type;
+  const char* data;
+  size_t length;
+  std::string string;
+
+  /// constructors
+  LightWeightString() : type(undefined), data(nullptr), length(0) {}
+  // type: string_view
+  LightWeightString(const char* cstr) {
+    type = string_view;
+    data = cstr;
+    length = cstr != nullptr ? strlen(cstr) : 0;
+  }
+  LightWeightString& operator=(const char* cstr) {
+    type = string_view;
+    data = cstr;
+    length = cstr != nullptr ? strlen(cstr) : 0;
+    return *this;
+  }
+  // type: partial_string_view
+  LightWeightString(const char* p, size_t len)
+      : type(partial_string_view), data(p), length(len) {}
+  // type: malloced_string
+  struct hand_over_memory {};
+  LightWeightString(const char* p, hand_over_memory) {
+    if (p != nullptr) {
+      type = malloced_string;
+      data = p;  // p must point to a string that end with '\0'
+      length = strlen(p);
+    } else {
+      LightWeightString();
+    }
+  }
+  // type: std_string
+  LightWeightString(std::string&& str) {
+    type = std_string;
+    string = str;  // move to our string
+    data = string.c_str();
+    length = string.size();
+  }
+
+  // get c_str that ends with '\0'
+  const char* c_str() {
+    switch (type) {
+      case string_view:
+      case malloced_string:
+        return data != nullptr ? data : "";
+      case partial_string_view:
+        // we can't return a string ends with '\0' here
+        assert(0);
+        return "";
+      case std_string:
+        return string.c_str();
+      default:
+        return "";
+    }
+  }
+
+  // destructor
+  ~LightWeightString() {
+    if (type == malloced_string && data != nullptr) {
+      std::free((void*)data);
+      data = nullptr;
+    }
+  }
+
+  // new & delete
+  void* operator new(size_t size);
+  void operator delete(void* p);
+};
+#else
+using LightWeightString = std::string;
+#endif
+
 class LogString {
  public:
   LogString();
@@ -333,11 +442,29 @@ class LogString {
   template <typename T, typename std::enable_if<
                             std::is_arithmetic<T>::value>::type* = nullptr>
   void append(T val) {
+#ifdef LIGHT_WEIGHT_STRING_ENABLED
+    appendPiece(std::move(std::to_string(val)));
+#else
     str_.append(std::to_string(val));
+#endif
   }
 
   void appendVariant(const Variant& v);
   void appendVariantFormat(char format, const Variant& v);
+
+#ifdef LIGHT_WEIGHT_STRING_ENABLED
+  template <typename... arg_types>
+  void appendPiece(arg_types... args) {
+    if (tail_ != pieces_.end()) {
+      tail_ = pieces_.emplace_after(tail_, std::forward<arg_types>(args)...);
+    } else {
+      pieces_.emplace_front(std::forward<arg_types>(args)...);
+      tail_ = pieces_.begin();
+    }
+    total_length_ += (*tail_).length;
+  }
+  void mergePieces();
+#endif
 
   std::string& str();
   const std::string& str() const;
@@ -349,6 +476,14 @@ class LogString {
 
  private:
   std::string str_;
+#ifdef LIGHT_WEIGHT_STRING_ENABLED
+  // hold pieces of strs until str() is called
+  std::forward_list<LightWeightString,
+                    LightWeightString::Allocator<LightWeightString>>
+      pieces_;
+  decltype(pieces_)::iterator tail_;
+  size_t total_length_;
+#endif
 };
 
 bool typesafeFormat(LogString* log, const char* format, const char* func,
@@ -356,29 +491,12 @@ bool typesafeFormat(LogString* log, const char* format, const char* func,
 
 template <typename... Args>
 std::string typesafeFormatString(const char* format, const Args&... args) {
+  return "";
   LogString log;
   Variant v_args[sizeof...(args) + 1] = {args...};
   typesafeFormat(&log, format, "", v_args, sizeof...(args));
   return log.str();
 }
-
-#ifdef LIGHT_WEIGHT_STRING_ENABLED
-// An light weight string that do not own the memory
-struct LightWeightString {
-  const char* data;
-  size_t length;
-  LightWeightString() : data(nullptr), length(0) {}
-  LightWeightString(const char* p, size_t len) : data(p), length(len) {}
-  LightWeightString& operator=(const char* cstr) {
-    data = cstr;
-    length = cstr != nullptr ? strlen(cstr) : 0;
-    return *this;
-  }
-  const char* c_str() { return data; }
-};
-#else
-using LightWeightString = std::string;
-#endif
 
 // Represents a single log statement
 struct LogEntry {

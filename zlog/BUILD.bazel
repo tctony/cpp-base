@@ -1,4 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load(":build_setting.bzl", "get_zlog_copts_all", "get_zlog_copts_config", "parse_zlog_copts_config")
 
 zlog_srcs = [
     "console_appender.cpp",
@@ -11,10 +12,23 @@ zlog_hdrs = [
     "zlog.h",
 ]
 
+parse_zlog_copts_config()
+
+zlog_copts_config = get_zlog_copts_config()
+
+cc_library(
+    name = "zlog_configurable",
+    srcs = zlog_srcs,
+    hdrs = zlog_hdrs,
+    copts = zlog_copts_config,
+    visibility = ["//visibility:public"],
+)
+
 cc_library(
     name = "zlog",
     srcs = zlog_srcs,
     hdrs = zlog_hdrs,
+    copts = get_zlog_copts_all(),
     visibility = ["//visibility:public"],
 )
 
@@ -22,6 +36,6 @@ cc_test(
     name = "zlog_test",
     srcs = ["zlog_test.cpp"],
     deps = [
-        ":zlog",
+        ":zlog_configurable",
     ],
 )

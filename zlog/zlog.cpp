@@ -22,6 +22,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef LIGHT_WEIGHT_STRING_ENABLED
+#include <forward_list>
+#endif
+
 namespace zlog {
 
 #define CONST_STRING(name, value) static const char* name = value
@@ -232,6 +236,9 @@ static const char* const kBinStringTable[256] = {
 static std::string bytes_to_binstring_(const void* buffer, size_t length) {
   const uint8_t* input = (const uint8_t*)buffer;
   std::string str;
+  if (length > 0) {
+    str.reserve(9 * length - 1);
+  }
   for (size_t i = 0; i < length; ++i) {
     if (i > 0) {
       str.append(1, ' ');
@@ -250,6 +257,7 @@ static std::string bytes_to_hexstring_(const void* buffer, size_t length,
   const uint8_t* input = (const uint8_t*)buffer;
 
   std::string str("0x");
+  str.reserve(2 + length * 2);
   for (size_t i = 0; i < length; ++i) {
     uint8_t x = input[i];
     uint8_t a = x >> 4;
@@ -278,7 +286,58 @@ static std::string int_to_hexstring_(T x, bool uppercase) {
   return bytes_to_hexstring_(bytes, sizeof(T), uppercase);
 }
 
-LogString::LogString() {}
+#ifdef LIGHT_WEIGHT_STRING_ENABLED
+struct LightWeightStringAllocator {
+  std::forward_list<void*> list;
+  LightWeightStringAllocator() {
+    const static int count = 50;
+    for (int i = 0; i < count; ++i) {
+      list.push_front(malloc(sizeof(LightWeightString)));
+    }
+  }
+  ~LightWeightStringAllocator() {
+    while (!list.empty()) {
+      void* p = list.front();
+      std::free(p);
+      list.pop_front();
+    }
+  }
+  void* alloc(size_t size) {
+    void* p = nullptr;
+    if (!list.empty()) {
+      p = list.front();
+      list.pop_front();
+    } else {
+      assert(0);
+      p = std::malloc(size);
+    }
+    return p;
+  }
+  void free(void* p) {
+    if (p != nullptr) {
+      list.push_front(p);
+    }
+  }
+};
+thread_local LightWeightStringAllocator s_lws_allocator;
+void* lws_allocate(std::size_t size) { return s_lws_allocator.alloc(size); }
+void lws_deallocate(void* p) { s_lws_allocator.free(p); }
+
+void* LightWeightString::operator new(size_t size) {
+  void* p = s_lws_allocator.alloc(size);
+  return p;
+}
+void LightWeightString::operator delete(void* p) {
+  if (p != nullptr) s_lws_allocator.free(p);
+}
+#endif
+
+LogString::LogString() {
+#ifdef LIGHT_WEIGHT_STRING_ENABLED
+  tail_ = pieces_.end();
+  total_length_ = 0;
+#endif
+}
 
 LogString::~LogString() {}
 
@@ -292,8 +351,12 @@ void LogString::appendFormat(const char* format, ...) {
 void LogString::appendFormatV(const char* format, va_list vl) {
   const char* str = vsformat_(format, vl);
   if (str != NULL) {
+#ifdef LIGHT_WEIGHT_STRING_EANBLED
+    appendPiece(str, hand_over_memory());
+#else
     str_.append(str);
     free((void*)str);
+#endif
   }
 }
 
@@ -310,28 +373,89 @@ void LogString::formatV(const char* format, va_list vl) {
 }
 
 void LogString::append(bool val) {
+#ifdef LIGHT_WEIGHT_STRING_EANBLED
+  appendPiece(val ? kStringTrue : kStringFalse);
+#else
   str_.append(val ? kStringTrue : kStringFalse);
+#endif
 }
 
-void LogString::append(char val) { str_.append(1, val); }
+void LogString::append(char val) {
+#ifdef LIGHT_WEIGHT_STRING_ENABLED
+  appendPiece(std::string(1, val));
+#else
+  str_.append(1, val);
+#endif
+}
 
 void LogString::append(const void* val) { appendFormat(kFormatPointer, val); }
 
 void LogString::append(const char* val) {
+#ifdef LIGHT_WEIGHT_STRING_ENABLED
+  appendPiece(val == nullptr ? kStringNullptr : val);
+#else
   str_.append(val == nullptr ? kStringNullptr : val);
+#endif
 }
 
-void LogString::append(const std::string& val) { str_.append(val); }
+void LogString::append(const std::string& val) {
+#ifdef LIGHT_WEIGHT_STRING_ENABLED
+  std::string copy(val);
+  appendPiece(std::move(copy));
+#else
+  str_.append(val);
+#endif
+}
 
 void LogString::append(std::nullptr_t np) { append(kStringNullptr); }
 
-void LogString::append(const char* val, size_t n) { str_.append(val, n); }
+void LogString::append(const char* val, size_t n) {
+#ifdef LIGHT_WEIGHT_STRING_ENABLED
+  appendPiece(val, n);
+#else
+  str_.append(val, n);
+#endif
+}
 
-std::string& LogString::str() { return str_; }
+#ifdef LIGHT_WEIGHT_STRING_ENABLED
+void LogString::mergePieces() {
+  if (total_length_ == 0) return;
+  if (str_.capacity() - str_.size() <= total_length_) {
+    str_.reserve(str_.size() + total_length_);
+  }
+  for (const auto& p : pieces_) {
+    str_.append(p.data, p.length);
+  }
+  pieces_.clear();
+  tail_ = pieces_.end();
+  total_length_ = 0;
+}
+#endif
 
-const std::string& LogString::str() const { return str_; }
+std::string& LogString::str() {
+#ifdef LIGHT_WEIGHT_STRING_ENABLED
+  mergePieces();
+#endif
+  return str_;
+}
 
-void LogString::clear() { str_.clear(); }
+const std::string& LogString::str() const {
+#ifdef LIGHT_WEIGHT_STRING_ENABLED
+  // we can't call mergePieces here..., so the str_ is incomplete
+  assert(0);
+  return str_;
+#endif
+  return str_;
+}
+
+void LogString::clear() {
+  return;
+#ifdef LIGHT_WEIGHT_STRING_ENABLED
+  pieces_.clear();
+  total_length_ = 0;
+#endif
+  str_.clear();
+}
 
 void LogString::appendVariant(const Variant& v) {
   switch (v.type()) {
