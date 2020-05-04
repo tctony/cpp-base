@@ -10,6 +10,8 @@ namespace base {
 struct ErrorCode {
   int code_;
   std::string msg_;
+
+  std::string what();
 };
 
 using Error = absl::optional<ErrorCode>;

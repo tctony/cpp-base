@@ -18,10 +18,20 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 
+cc_library(
+    name = "zlog_to_console",
+    srcs = ["zlog_setup_console_appender.cpp"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":zlog",
+    ],
+)
+
 cc_test(
     name = "zlog_test",
     srcs = ["zlog_test.cpp"],
     deps = [
         ":zlog",
+        ":zlog_to_console",
     ],
 )

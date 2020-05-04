@@ -21,15 +21,29 @@ using DestroyFunc = std::function<void()>;
 // happened in reverse order of init.
 class InitRegistry {
  public:
-  int add(InitFunc init, DestroyFunc destroy, int priority);
+  InitRegistry(const std::string& label = "default") : label_(label) {}
+
+ public:
+  const std::string& label() const { return label_; }
+
+  int add(InitFunc init, DestroyFunc destroy, int priority,
+          const std::string& entryLabel);
   Error init(const InitArgs& args);
   void destory();
 
  private:
+  const std::string label_;
+
   struct Entry {
     InitFunc init_;
     DestroyFunc destroy_;
     int priority_;
+    std::string label_;
+
+    Entry(InitFunc init, DestroyFunc destroy, int priority,
+          const std::string label)
+        : init_(init), destroy_(destroy), priority_(priority), label_(label) {}
+
     bool operator<(const Entry& entry) const {
       return priority_ < entry.priority_;
     };
