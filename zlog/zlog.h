@@ -405,8 +405,8 @@ class DefaultLogFormatter : public ILogFormatter {
  public:
   // 04-08 16:17:52.311 14519/0 D tag main.cpp 83: test for zlog: 1 + 2 = 3
   static constexpr const char* kDefaultFormat =
-      "$time $pid/$tid $level $tag $file $line: $log";
-  // 04-08 16:17:52.311
+      "$time[$pid/$tid][$level][$tag][$file,$line,$func]$log";
+  // 2020-04-08 16:17:52.311
   static constexpr const char* kDefaultTimeFormat = "%Y-%m-%d %H:%M:%S";
 
  public:
