@@ -1,12 +1,5 @@
 #include "zlog.h"
 
-#include "console_appender.h"
-
-static int __reg = [] {
-  zlog::addAppender(new zlog::ConsoleAppender());
-  return 0;
-}();
-
 int main(int argc, char const *argv[]) {
   int a = 1;
   double b = 1.0;

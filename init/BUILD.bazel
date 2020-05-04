@@ -4,6 +4,8 @@ cc_library(
     name = "init_registry",
     srcs = [
         "init_registry.cpp",
+    ],
+    hdrs = [
         "init_registry.hpp",
     ],
     visibility = [
@@ -11,6 +13,7 @@ cc_library(
     ],
     deps = [
         "//types:error",
+        "//zlog",
         "@abseil//absl/types:any",
     ],
 )
@@ -22,6 +25,7 @@ cc_test(
     ],
     deps = [
         ":init_registry",
+        "//zlog:zlog_to_console",
         "@gtest//:gtest_main",
     ],
 )
