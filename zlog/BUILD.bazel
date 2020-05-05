@@ -20,7 +20,8 @@ cc_library(
 
 cc_library(
     name = "zlog_to_console",
-    srcs = ["zlog_setup_console_appender.cpp"],
+    srcs = ["zlog_to_console.cpp"],
+    hdrs = ["zlog_to_console.h"],
     visibility = ["//visibility:public"],
     deps = [
         ":zlog",

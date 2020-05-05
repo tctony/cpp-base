@@ -1,5 +1,9 @@
 #include "zlog.h"
 
+#include "zlog_to_console.h"
+
+ZlogToConsoleSetup;
+
 int main(int argc, char const *argv[]) {
   int a = 1;
   double b = 1.0;
