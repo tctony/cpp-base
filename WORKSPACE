@@ -1,18 +1,16 @@
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("//tools/bazel:load_tool.bzl", "load_http_archive_deps_if_needed")
 
-http_archive(
-    name = "rules_foreign_cc",
-    strip_prefix = "rules_foreign_cc-master",
-    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/master.zip",
-)
+load_http_archive_deps_if_needed({
+    "rules_foreign_cc": {
+        "strip_prefix": "rules_foreign_cc-master",
+        "url": "https://github.com/bazelbuild/rules_foreign_cc/archive/master.zip",
+    },
+})
 
+# for openssl
 load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
 
 rules_foreign_cc_dependencies()
-
-load("//tools/bazel_compile_commands:deps_util.bzl", "bazel_compile_commands_deps")
-
-bazel_compile_commands_deps()
 
 local_repository(
     name = "gtest",  # 1.10
@@ -38,3 +36,7 @@ local_repository(
     name = "ThreadPool",
     path = "../lib/ThreadPool",
 )
+
+load("//tools/bazel_compile_commands:deps.bzl", "bazel_compile_commands_deps")
+
+load_http_archive_deps_if_needed(bazel_compile_commands_deps)
