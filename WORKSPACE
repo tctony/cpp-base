@@ -1,11 +1,11 @@
-load("//tools/bazel:load_tool.bzl", "load_http_archive_deps_if_needed")
+load("//tools/bazel:load_tool.bzl", "load_deps_if_needed")
+load("//:workspace_deps.bzl", "base_workspace_deps")
 
-load_http_archive_deps_if_needed({
-    "rules_foreign_cc": {
-        "strip_prefix": "rules_foreign_cc-master",
-        "url": "https://github.com/bazelbuild/rules_foreign_cc/archive/master.zip",
-    },
-})
+load_deps_if_needed(base_workspace_deps)
+
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
 
 # for openssl
 load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
@@ -39,4 +39,4 @@ local_repository(
 
 load("//tools/bazel_compile_commands:deps.bzl", "bazel_compile_commands_deps")
 
-load_http_archive_deps_if_needed(bazel_compile_commands_deps)
+load_deps_if_needed(bazel_compile_commands_deps)
