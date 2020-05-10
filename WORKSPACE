@@ -10,6 +10,10 @@ load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependen
 
 rules_foreign_cc_dependencies()
 
+load("//tools/bazel_compile_commands:deps_util.bzl", "bazel_compile_commands_deps")
+
+bazel_compile_commands_deps()
+
 local_repository(
     name = "gtest",  # 1.10
     path = "../lib/googletest",

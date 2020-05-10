@@ -1,5 +1,7 @@
 .vscode
 
+compile_commands.json
+
 # Created by https://www.gitignore.io/api/bazel,macos
 # Edit at https://www.gitignore.io/?templates=bazel,macos
 
