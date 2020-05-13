@@ -15,8 +15,7 @@ cc_test(
     srcs = ["thread_group_test.cpp"],
     deps = [
         ":thread_group",
-        "@gtest",
-        "@gtest//:gtest_main",
+        "//external:gtest_main",
     ],
 )
 
@@ -39,7 +38,6 @@ cc_test(
     srcs = ["worker_test.cpp"],
     deps = [
         ":worker",
-        "@gtest",
-        "@gtest//:gtest_main",
+        "//external:gtest_main",
     ],
 )

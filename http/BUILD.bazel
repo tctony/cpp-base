@@ -14,8 +14,8 @@ cc_library(
         "url_encode.hpp",
     ],
     deps = [
-        "//types:error",
-        "//util:string_util",
+        "//base/types:error",
+        "//base/util:string_util",
         "@abseil//absl/strings",
         "@abseil//absl/types:optional",
     ],
@@ -39,7 +39,6 @@ cc_test(
     ],
     deps = [
         ":http",
-        "@gtest",
-        "@gtest//:gtest_main",
+        "//external:gtest_main",
     ],
 )

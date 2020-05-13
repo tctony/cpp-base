@@ -4,8 +4,8 @@
 #include <string>
 #include <tuple>
 
+#include "base/types/error.hpp"
 #include "request.hpp"
-#include "types/error.hpp"
 
 namespace base {
 namespace http {

@@ -12,8 +12,8 @@ cc_library(
         "//visibility:public",
     ],
     deps = [
-        "//types:error",
-        "//zlog",
+        "//base/types:error",
+        "//base/zlog",
         "@abseil//absl/types:any",
     ],
 )
@@ -25,7 +25,7 @@ cc_test(
     ],
     deps = [
         ":init_registry",
-        "//zlog:zlog_to_console",
-        "@gtest//:gtest_main",
+        "//base/zlog:zlog_to_console",
+        "//external:gtest_main",
     ],
 )

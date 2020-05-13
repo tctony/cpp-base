@@ -2,8 +2,8 @@
 
 #include <iostream>
 
+#include "base/types/error.hpp"
 #include "gtest/gtest.h"
-#include "types/error.hpp"
 
 using base::InitArgs;
 using base::InitRegistry;

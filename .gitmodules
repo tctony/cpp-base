@@ -1,3 +1,0 @@
-[submodule "tools/bazel_compile_commands"]
-	path = tools/bazel_compile_commands
-	url = https://github.com/tctony/bazel_compile_commands

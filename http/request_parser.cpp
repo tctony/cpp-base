@@ -1,8 +1,8 @@
 #include "request_parser.hpp"
 
 #include "absl/strings/str_split.h"
+#include "base/util/string_util.hpp"
 #include "request.hpp"
-#include "util/string_util.hpp"
 
 namespace base {
 namespace http {

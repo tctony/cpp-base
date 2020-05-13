@@ -23,8 +23,7 @@ cc_test(
     copts = [],
     deps = [
         ":string_util",
-        "@gtest",
-        "@gtest//:gtest_main",
+        "//external:gtest_main",
     ],
 )
 
@@ -39,6 +38,6 @@ cc_test(
     srcs = ["time_util_test.cpp"],
     deps = [
         ":time_util",
-        "@gtest//:gtest_main",
+        "//external:gtest_main",
     ],
 )

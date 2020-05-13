@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-#include "util/string_util.hpp"
+#include "base/util/string_util.hpp"
 
 namespace base {
 namespace http {
