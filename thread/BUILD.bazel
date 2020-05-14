@@ -8,6 +8,7 @@ cc_library(
     hdrs = [
         "thread_group.hpp",
     ],
+    visibility = ["//visibility:public"],
 )
 
 cc_test(
@@ -27,6 +28,7 @@ cc_library(
     hdrs = [
         "worker.hpp",
     ],
+    visibility = ["//visibility:public"],
     deps = [
         ":thread_group",
         "@asio",
