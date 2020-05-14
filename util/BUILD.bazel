@@ -41,3 +41,9 @@ cc_test(
         "//external:gtest_main",
     ],
 )
+
+cc_library(
+    name = "disablecopy",
+    hdrs = ["disablecopy.h"],
+    visibility = ["//visibility:public"],
+)
