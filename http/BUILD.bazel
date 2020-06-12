@@ -13,6 +13,9 @@ cc_library(
         "url_decode.hpp",
         "url_encode.hpp",
     ],
+    visibility = [
+        "//visibility:public",
+    ],
     deps = [
         "//base/types:error",
         "//base/util:string_util",
