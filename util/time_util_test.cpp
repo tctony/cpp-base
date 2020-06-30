@@ -4,6 +4,7 @@
 
 #include <iostream>
 
+using base::util::timeCostInMicroseconds;
 using base::util::timeCostInMilliseconds;
 
 TEST(time_util, timeCostInMilliseconds) {
@@ -11,5 +12,8 @@ TEST(time_util, timeCostInMilliseconds) {
   std::cout << cost << std::endl;
 
   cost = timeCostInMilliseconds([](int t) { sleep(t); }, 1);
+  std::cout << cost << std::endl;
+
+  cost = timeCostInMicroseconds([](int t) { sleep(t); }, 1);
   std::cout << cost << std::endl;
 }
