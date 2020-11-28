@@ -4,6 +4,7 @@
 
 #include "request_formatter.hpp"
 #include "request_parser.hpp"
+#include "response_parser.hpp"
 #include "url_decode.hpp"
 #include "url_encode.hpp"
 
@@ -75,4 +76,37 @@ TEST(Http, formData) {
 
   auto parsedFormData = parsedRequest.getFormData();
   EXPECT_EQ(data, parsedFormData);
+}
+
+TEST(Http, parse_response_1) {
+  std::string response =
+      "HTTP/1.1 200 ok\r\n"
+      "Connection: keep-alive\r\n"
+      "Content-Length: 0\r\n"
+      "\r\n";
+
+  Response resp;
+  ResponseParser parser(resp);
+
+  auto [status, offset] = parser.parse(response.begin(), response.end());
+
+  EXPECT_EQ(status, ResponseParser::good);
+  EXPECT_EQ(offset, response.end());
+}
+
+TEST(Http, parse_response_2) {
+  std::string response =
+      "HTTP/1.1 200 ok\r\n"
+      "Connection: keep-alive\r\n"
+      "Content-Length: 5\r\n"
+      "\r\n"
+      "abcde";
+
+  Response resp;
+  ResponseParser parser(resp);
+
+  auto [status, offset] = parser.parse(response.begin(), response.end());
+
+  EXPECT_EQ(status, ResponseParser::good);
+  EXPECT_EQ(offset, response.end());
 }
