@@ -46,7 +46,7 @@ class ErrorCategory : public std::error_category {
     if (value == unknownError) {
       return "unknown error";
     } else {
-      return absl::StrCat("unspecified ", this->name(), " error");
+      return absl::StrCat("unspecified ", this->name(), " error: ", value);
     }
   }
 
