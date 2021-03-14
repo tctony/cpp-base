@@ -1,0 +1,21 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+cc_library(
+    name = "error",
+    hdrs = ["error.hpp"],
+    srcs = ["error.cpp"],
+    deps = [
+        "//base/util:disablecopy",
+        "@abseil//absl/strings",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_test(
+    name = "error_test",
+    srcs = ["error_test.cpp"],
+    deps = [
+        ":error",
+        "//external:gtest_main",
+    ],
+)
