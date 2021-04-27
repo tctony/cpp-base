@@ -47,3 +47,23 @@ cc_library(
     hdrs = ["disablecopy.h"],
     visibility = ["//visibility:public"],
 )
+
+cc_library(
+    name = "callstack",
+    hdrs = ["callstack.h"],
+    srcs = ["callstack.cpp"],
+    deps = [
+        "@abseil//absl/debugging:stacktrace",
+        "@abseil//absl/debugging:symbolize",
+    ],
+    visibility = ["//visibility:public"]
+)
+
+cc_test(
+    name = "callstack_test",
+    srcs = ["callstack_test.cpp"],
+    deps = [
+        ":callstack",
+        "//external:gtest_main",
+    ],
+)
