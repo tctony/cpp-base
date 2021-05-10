@@ -13,6 +13,6 @@ repos:
   hooks:
   - id: clang-format
 - repo: https://github.com/tctony/pre-commit-hooks-misc
-  rev: v0.1.0
+  rev: v0.1.1
   hooks:
   - id: bazel
