@@ -1,6 +1,6 @@
-#include <gtest/gtest.h>
-
 #include "base/error/error.hpp"
+
+#include <gtest/gtest.h>
 
 using namespace base::error;
 

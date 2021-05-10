@@ -1,7 +1,7 @@
 #include "callstack.h"
 
-#include <iostream>
 #include <exception>
+#include <iostream>
 
 #include "gtest/gtest.h"
 
@@ -12,20 +12,18 @@ TEST(CallStack, get_normal_call_stack) {
   cout << callstack.debugString() << "\n";
 }
 
-struct MyException: public exception {
-  const char* what() const throw() {
-    return "MyExcetpion";
-  }
+struct MyException : public exception {
+  const char* what() const throw() { return "MyExcetpion"; }
 };
 
 // exception not working under gtest wrapping...
 TEST(CallStack, get_exception_call_stack) {
   try {
     throw MyException();
-  } catch(MyException& exception) {
+  } catch (MyException& exception) {
     cout << exception.what() << "\n";
-    cout 
-      << base::util::CallStack::currentExceptionCallstack.get()->debugString()
-      << "\n";
+    cout
+        << base::util::CallStack::currentExceptionCallstack.get()->debugString()
+        << "\n";
   }
 }

@@ -50,13 +50,13 @@ cc_library(
 
 cc_library(
     name = "callstack",
-    hdrs = ["callstack.h"],
     srcs = ["callstack.cpp"],
+    hdrs = ["callstack.h"],
+    visibility = ["//visibility:public"],
     deps = [
         "@abseil//absl/debugging:stacktrace",
         "@abseil//absl/debugging:symbolize",
     ],
-    visibility = ["//visibility:public"]
 )
 
 cc_test(

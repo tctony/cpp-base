@@ -2,13 +2,13 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
     name = "error",
-    hdrs = ["error.hpp"],
     srcs = ["error.cpp"],
+    hdrs = ["error.hpp"],
+    visibility = ["//visibility:public"],
     deps = [
         "//base/util:disablecopy",
         "@abseil//absl/strings",
     ],
-    visibility = ["//visibility:public"],
 )
 
 cc_test(

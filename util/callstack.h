@@ -28,7 +28,8 @@ class CallStack {
       if (absl::Symbolize(stack_[i], tmp, sizeof(tmp))) {
         symbol = tmp;
       }
-      oss << std::setw(2) << i << " " << std::setw(18) << stack_[i] << " " << symbol << "\n";
+      oss << std::setw(2) << i << " " << std::setw(18) << stack_[i] << " "
+          << symbol << "\n";
     }
     oss << "\n";
     return oss.str();
@@ -37,7 +38,7 @@ class CallStack {
   static thread_local std::unique_ptr<CallStack> currentExceptionCallstack;
 
  private:
-  void *stack_[kStackSize];
+  void* stack_[kStackSize];
   int size_;
 };
 
