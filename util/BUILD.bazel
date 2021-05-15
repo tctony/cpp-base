@@ -82,6 +82,12 @@ cc_test(
     ],
 )
 
+cc_binary(
+    name = "callstack_test2",
+    srcs = ["callstack_test2.cpp"],
+    deps = [":callstack"],
+)
+
 cc_library(
     name = "pimpl",
     hdrs = ["pimpl.h"],
