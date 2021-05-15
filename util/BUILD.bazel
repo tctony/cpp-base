@@ -1,5 +1,19 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "common",
+    hdrs = ["common.h"],
+    deps = [
+        ":disablecopy",
+        ":pimpl",
+        ":random",
+        ":string_util",
+        ":time_util",
+    ],
+)
+
 cc_library(
     name = "string_util",
     srcs = [
@@ -64,6 +78,50 @@ cc_test(
     srcs = ["callstack_test.cpp"],
     deps = [
         ":callstack",
+        "//external:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "pimpl",
+    hdrs = ["pimpl.h"],
+)
+
+cc_library(
+    name = "bloom_filter",
+    srcs = ["bloom_filter.cpp"],
+    hdrs = ["bloom_filter.h"],
+    deps = [
+        ":common",
+        "//base/file:mmap",
+        "@abseil//absl/hash:city",
+    ],
+)
+
+cc_test(
+    name = "bloom_filter_test",
+    srcs = ["bloom_filter_test.cpp"],
+    deps = [
+        ":bloom_filter",
+        "//external:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "random",
+    srcs = [
+        "random.cpp",
+    ],
+    hdrs = [
+        "random.h",
+    ],
+)
+
+cc_test(
+    name = "random_test",
+    srcs = ["random_test.cpp"],
+    deps = [
+        ":random",
         "//external:gtest_main",
     ],
 )

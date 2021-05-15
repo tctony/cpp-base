@@ -1,0 +1,43 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "file_descriptor",
+    srcs = ["file_descriptor.cpp"],
+    hdrs = ["file_descriptor.h"],
+    deps = [
+        "//base/error:except",
+        "//base/util:disablecopy",
+    ],
+)
+
+cc_test(
+    name = "file_descriptor_test",
+    srcs = ["file_descriptor_test.cpp"],
+    deps = [
+        ":file_descriptor",
+        "//external:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "mmap",
+    srcs = ["mmap.cpp"],
+    hdrs = ["mmap.h"],
+    deps = [
+        "//base/file:file_descriptor",
+        "//base/util:common",
+        "@abseil//absl/types:span",
+        "@abseil//absl/types:variant",
+    ],
+)
+
+cc_test(
+    name = "mmap_test",
+    srcs = ["mmap_test.cpp"],
+    deps = [
+        ":mmap",
+        "//external:gtest_main",
+    ],
+)

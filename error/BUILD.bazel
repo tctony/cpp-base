@@ -1,5 +1,7 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
+package(default_visibility = ["//visibility:public"])
+
 cc_library(
     name = "error",
     srcs = ["error.cpp"],
@@ -16,6 +18,24 @@ cc_test(
     srcs = ["error_test.cpp"],
     deps = [
         ":error",
+        "//external:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "except",
+    srcs = ["except.cpp"],
+    hdrs = ["except.h"],
+    deps = [
+        "@exceptxx",
+    ],
+)
+
+cc_test(
+    name = "except_test",
+    srcs = ["except_test.cpp"],
+    deps = [
+        ":except",
         "//external:gtest_main",
     ],
 )
