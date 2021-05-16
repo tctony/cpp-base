@@ -4,13 +4,21 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "common",
-    hdrs = ["common.h"],
     deps = [
+        ":defer",
+        ":define",
         ":disablecopy",
         ":pimpl",
         ":random",
         ":string_util",
         ":time_util",
+    ],
+)
+
+cc_library(
+    name = "define",
+    hdrs = [
+        "define.h",
     ],
 )
 
@@ -128,6 +136,24 @@ cc_test(
     srcs = ["random_test.cpp"],
     deps = [
         ":random",
+        "//external:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "defer",
+    hdrs = ["defer.h"],
+    deps = [
+        ":define",
+        ":disablecopy",
+    ],
+)
+
+cc_test(
+    name = "defer_test",
+    srcs = ["defer_test.cpp"],
+    deps = [
+        ":defer",
         "//external:gtest_main",
     ],
 )

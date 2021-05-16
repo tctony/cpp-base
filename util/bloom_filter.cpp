@@ -5,7 +5,7 @@
 
 #include "absl/hash/internal/city.h"
 #include "base/file/mmap.h"
-#include "base/util/common.h"
+#include "base/util/define.h"
 #include "base/util/disablecopy.h"
 
 namespace base::util {
@@ -38,7 +38,7 @@ static FileMemoryBuffer loadMemoryBuffer(const char *filename,
     memset(block.data(), 0, block.size());
     size_t n_block = fileSize / block.size();
     size_t remainder = fileSize % block.size();
-    __FOR(i, n_block) { fout.write(block.data(), block.size()); }
+    _FOR(i, n_block) { fout.write(block.data(), block.size()); }
     if (remainder > 0) {
       fout.write(block.data(), remainder);
     }
@@ -55,7 +55,7 @@ struct MMapBasedBloomFilter::Impl {
         config_(std::move(cfg)) {}
 
   [[nodiscard]] bool lookUp(std::string_view key) const {
-    __FOR(i, config_.seeds_.size()) {
+    _FOR(i, config_.seeds_.size()) {
       if (!get(i, absl::hash_internal::CityHash64WithSeed(
                       key.data(), key.size(), config_.seeds_[i]))) {
         return false;
@@ -65,7 +65,7 @@ struct MMapBasedBloomFilter::Impl {
   }
 
   void add(std::string_view key) {
-    __FOR(i, config_.seeds_.size()) {
+    _FOR(i, config_.seeds_.size()) {
       set(i, absl::hash_internal::CityHash64WithSeed(key.data(), key.size(),
                                                      config_.seeds_[i]));
     }
