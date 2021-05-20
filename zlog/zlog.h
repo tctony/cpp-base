@@ -82,38 +82,38 @@
   PP_COMMA_IF(PP_VARIADIC_SIZE(__VA_ARGS__)) __VA_ARGS__
 // clang-format on
 
-#define zlog_impl(level) \
+#define zlog_impl(level)                                                       \
   zlog_write_0(level, __ZTAG__, __ZFUNC__, __FILE__, __LINE__)
 
-#define zlog_fatal_impl(level)                                               \
-  for (zlog::Logger* logger = zlog::Logger::instance(level); logger != NULL; \
-       logger = NULL, abort())                                               \
-  zlog::g_unused_wtf = logger                                                \
-                           ->prepare(level, __ZTAG__, __ZFUNC__, __FILE__,   \
-                                     __LINE__, zlog::Sentry(logger))         \
+#define zlog_fatal_impl(level)                                                 \
+  for (zlog::Logger *logger = zlog::Logger::instance(level); logger != NULL;   \
+       logger = NULL, abort())                                                 \
+  zlog::g_unused_wtf = logger                                                  \
+                           ->prepare(level, __ZTAG__, __ZFUNC__, __FILE__,     \
+                                     __LINE__, zlog::Sentry(logger))           \
                            .__ZLOG_B__
 
-#define zlog_scope_impl(level, ...)                   \
-  zlog::ScopedLog PP_LINE_VAR(_scoped_log_)(          \
-      level, __ZTAG__, __ZFUNC__, __FILE__, __LINE__, \
+#define zlog_scope_impl(level, ...)                                            \
+  zlog::ScopedLog PP_LINE_VAR(_scoped_log_)(                                   \
+      level, __ZTAG__, __ZFUNC__, __FILE__, __LINE__,                          \
       zlog::typesafeFormatString(__VA_ARGS__).c_str(), "")
 
-#define zlog_function_impl(level, ...)                           \
-  zlog::ScopedLog PP_LINE_VAR(_scoped_log_)(                     \
-      level, __ZTAG__, __ZFUNC__, __FILE__, __LINE__, __ZFUNC__, \
+#define zlog_function_impl(level, ...)                                         \
+  zlog::ScopedLog PP_LINE_VAR(_scoped_log_)(                                   \
+      level, __ZTAG__, __ZFUNC__, __FILE__, __LINE__, __ZFUNC__,               \
       zlog::typesafeFormatString(ZLOG_MAKE_FORMAT_S(__VA_ARGS__)))
 
-#define zlog_write_0(level, tag, func, file, line)                          \
-  if (zlog::Wrapper logger = zlog::Logger::instance(level))                 \
-    ;                                                                       \
-  else                                                                      \
-    zlog::g_unused_wtf =                                                    \
-        logger->prepare(level, tag, func, file, line, zlog::Sentry(logger)) \
+#define zlog_write_0(level, tag, func, file, line)                             \
+  if (zlog::Wrapper logger = zlog::Logger::instance(level))                    \
+    ;                                                                          \
+  else                                                                         \
+    zlog::g_unused_wtf =                                                       \
+        logger->prepare(level, tag, func, file, line, zlog::Sentry(logger))    \
             .__ZLOG_B__
 
-#define zverbose_function_0(...) \
+#define zverbose_function_0(...)                                               \
   zlog_function_impl(zlog::kLevelVerbose, __VA_ARGS__)
-#define zdebug_function_0(...) \
+#define zdebug_function_0(...)                                                 \
   zlog_function_impl(zlog::kLevelDebug, __VA_ARGS__)
 #define zinfo_function_0(...) zlog_function_impl(zlog::kLevelInfo, __VA_ARGS__)
 
@@ -128,15 +128,15 @@
 #define zerror_0 zlog_impl(zlog::kLevelError)
 #define zfatal_0 zlog_fatal_impl(zlog::kLevelFatal)
 
-#define zassert_0(e)                                                          \
-  if (e)                                                                      \
-    ;                                                                         \
-  else                                                                        \
-    for (zlog::Logger* logger = zlog::Logger::instance(zlog::kLevelFatal);    \
-         logger != NULL; logger = NULL, abort())                              \
-    logger                                                                    \
-        ->prepare(zlog::kLevelFatal, __ZTAG__, __ZFUNC__, __FILE__, __LINE__, \
-                  zlog::Sentry(logger))("Assertion failed: (%_)", #e)         \
+#define zassert_0(e)                                                           \
+  if (e)                                                                       \
+    ;                                                                          \
+  else                                                                         \
+    for (zlog::Logger *logger = zlog::Logger::instance(zlog::kLevelFatal);     \
+         logger != NULL; logger = NULL, abort())                               \
+    logger                                                                     \
+        ->prepare(zlog::kLevelFatal, __ZTAG__, __ZFUNC__, __FILE__, __LINE__,  \
+                  zlog::Sentry(logger))("Assertion failed: (%_)", #e)          \
         .__ZLOG_A__
 
 #define zlog_write_1(level, tag, func, file, line) ZLOG_NULL
@@ -156,20 +156,21 @@
 #define zerror_1 ZLOG_NULL
 #define zfatal_1 ZLOG_NULL
 
-#define ZLOG_NULL \
-  if (1)          \
-    ;             \
-  else            \
+#define ZLOG_NULL                                                              \
+  if (1)                                                                       \
+    ;                                                                          \
+  else                                                                         \
     zlog::g_unused_wtf = zlog::g_null_logger.__ZLOG_B__
 
-#define zassert_1(e) \
-  if (e)             \
-    ;                \
-  else               \
-    for (int i = 0; i < 1; ++i, assert(e)) zlog::g_null_logger.__ZLOG_A__
+#define zassert_1(e)                                                           \
+  if (e)                                                                       \
+    ;                                                                          \
+  else                                                                         \
+    for (int i = 0; i < 1; ++i, assert(e))                                     \
+    zlog::g_null_logger.__ZLOG_A__
 
 #define zlog_write PP_IF(HAS_ZLOG, zlog_write_0, zlog_write_1)
-#define zverbose_function \
+#define zverbose_function                                                      \
   PP_IF(HAS_ZLOG, zverbose_function_0, zverbose_function_1)
 #define zdebug_function PP_IF(HAS_ZLOG, zdebug_function_0, zdebug_function_1)
 #define zinfo_function PP_IF(HAS_ZLOG, zinfo_function_0, zinfo_function_1)
@@ -195,26 +196,23 @@ struct NullLogger {
   NullLogger()
       : this_(*this), __ZLOG_A__(*this), __ZLOG_B__(*this), __ZLOG_C__(*this) {}
 
-  template <typename T>
-  NullLogger& operator<<(const T&) {
-    return *this;
-  }
+  template <typename T> NullLogger &operator<<(const T &) { return *this; }
 
   template <typename... Args>
-  NullLogger& operator()(const char*, const Args&...) {
+  NullLogger &operator()(const char *, const Args &...) {
     return *this;
   }
 
-  NullLogger& operator()() { return *this; }
-  NullLogger& hex(const char*) { return *this; }
-  NullLogger& hex(const std::string&) { return *this; }
-  NullLogger& hex(const void*, size_t) { return *this; }
+  NullLogger &operator()() { return *this; }
+  NullLogger &hex(const char *) { return *this; }
+  NullLogger &hex(const std::string &) { return *this; }
+  NullLogger &hex(const void *, size_t) { return *this; }
   operator std::nullptr_t() const { return nullptr; }
 
-  NullLogger& this_;
-  NullLogger& __ZLOG_A__;
-  NullLogger& __ZLOG_B__;
-  NullLogger& __ZLOG_C__;
+  NullLogger &this_;
+  NullLogger &__ZLOG_A__;
+  NullLogger &__ZLOG_B__;
+  NullLogger &__ZLOG_C__;
 };
 
 #define __ZLOG_A__(...) this_(ZLOG_MAKE_FORMAT_S2(__VA_ARGS__))
@@ -225,7 +223,7 @@ extern std::nullptr_t g_unused_wtf;
 extern NullLogger g_null_logger;
 
 class Variant {
- public:
+public:
   Variant() : type_(kTypeInt) { value_.i32 = 0; }
   Variant(bool b) : type_(kTypeBool) { value_.b = b; }
   Variant(char c) : type_(kTypeChar) { value_.c = c; }
@@ -242,13 +240,13 @@ class Variant {
   Variant(float x) : type_(kTypeFloat) { value_.f = x; }
   Variant(double x) : type_(kTypeDouble) { value_.d = x; }
   Variant(long double x) : type_(kTypeLongDouble) { value_.ld = x; }
-  Variant(const void* p) : type_(kTypeVoidPtr) { value_.p = p; }
-  Variant(const char* s) : type_(kTypeCharPtr) { value_.s = s; }
-  Variant(const std::string& s) : type_(kTypeCharPtr) { value_.s = s.c_str(); }
+  Variant(const void *p) : type_(kTypeVoidPtr) { value_.p = p; }
+  Variant(const char *s) : type_(kTypeCharPtr) { value_.s = s; }
+  Variant(const std::string &s) : type_(kTypeCharPtr) { value_.s = s.c_str(); }
   Variant(std::nullptr_t np) : type_(kTypeNullPtr) { value_.np = np; }
   ~Variant() {}
 
- public:
+public:
   union Value {
     bool b;
     char c;
@@ -265,8 +263,8 @@ class Variant {
     float f;
     double d;
     long double ld;
-    const void* p;
-    const char* s;
+    const void *p;
+    const char *s;
     std::nullptr_t np;
   };
 
@@ -292,70 +290,70 @@ class Variant {
   };
 
   size_t size() const;
-  const Value& value() const { return value_; }
+  const Value &value() const { return value_; }
   Type type() const { return type_; }
 
- private:
+private:
   Value value_;
   Type type_;
 };
 
 enum LogLevel {
-  kLevelVerbose,  // More detailed information.
-  kLevelDebug,    // Detailed information on the flow through the system.
-  kLevelInfo,     // Interesting runtime events (startup/shutdown), should be
-                  // conservative and keep to a minimum.
-  kLevelWarn,   // Other runtime situations that are undesirable or unexpected,
-                // but not necessarily "wrong".
-  kLevelError,  // Other runtime errors or unexpected conditions.
-  kLevelFatal,  // Severe errors that cause premature termination.
-  kLevelNone    // Special level used to disable all log messages.
+  kLevelVerbose, // More detailed information.
+  kLevelDebug,   // Detailed information on the flow through the system.
+  kLevelInfo,    // Interesting runtime events (startup/shutdown), should be
+                 // conservative and keep to a minimum.
+  kLevelWarn,    // Other runtime situations that are undesirable or unexpected,
+                 // but not necessarily "wrong".
+  kLevelError,   // Other runtime errors or unexpected conditions.
+  kLevelFatal,   // Severe errors that cause premature termination.
+  kLevelNone     // Special level used to disable all log messages.
 };
 
 class LogString {
- public:
+public:
   LogString();
   ~LogString();
 
-  void appendFormat(const char* format, ...);
-  void appendFormatV(const char* format, va_list vl);
-  void format(const char* format, ...);
-  void formatV(const char* format, va_list vl);
+  void appendFormat(const char *format, ...);
+  void appendFormatV(const char *format, va_list vl);
+  void format(const char *format, ...);
+  void formatV(const char *format, va_list vl);
 
   void append(bool val);
   void append(char val);
-  void append(const void* val);
-  void append(const char* val);
-  void append(const std::string& val);
+  void append(const void *val);
+  void append(const char *val);
+  void append(const std::string &val);
   void append(std::nullptr_t np);
-  void append(const char* val, size_t n);
+  void append(const char *val, size_t n);
 
   template <typename T, typename std::enable_if<
-                            std::is_arithmetic<T>::value>::type* = nullptr>
+                            std::is_arithmetic<T>::value>::type * = nullptr>
   void append(T val) {
     str_.append(std::to_string(val));
   }
 
-  void appendVariant(const Variant& v);
-  void appendVariantFormat(char format, const Variant& v);
+  void appendVariant(const Variant &v);
+  void appendVariantFormat(char format, const Variant &v);
 
-  std::string& str();
-  const std::string& str() const;
+  std::string &str();
+  const std::string &str() const;
   void clear();
 
- private:
-  void appendVariantBinFormat_(const Variant& v);
-  void appendVariantHexFormat_(const Variant& v, bool uppercase);
+private:
+  void appendVariantBinFormat_(const Variant &v);
+  void appendVariantHexFormat_(const Variant &v, bool uppercase);
 
- private:
+private:
   std::string str_;
 };
 
-bool typesafeFormat(LogString* log, const char* format, const char* func,
-                    const Variant* args, size_t num_args);
+bool typesafeFormat(LogString *log, const char *format, const char *func,
+                    const Variant *args, size_t num_args);
 
 template <typename... Args>
-std::string typesafeFormatString(const char* format, const Args&... args) {
+std::string typesafeFormatString(const char *format, const Args &...args) {
   LogString log;
   Variant v_args[sizeof...(args) + 1] = {args...};
   typesafeFormat(&log, format, "", v_args, sizeof...(args));
@@ -365,16 +363,16 @@ std::string typesafeFormatString(const char* format, const Args&... args) {
 #ifdef LIGHT_WEIGHT_STRING_ENABLED
 // An light weight string that do not own the memory
 struct LightWeightString {
-  const char* data;
+  const char *data;
   size_t length;
   LightWeightString() : data(nullptr), length(0) {}
-  LightWeightString(const char* p, size_t len) : data(p), length(len) {}
-  LightWeightString& operator=(const char* cstr) {
+  LightWeightString(const char *p, size_t len) : data(p), length(len) {}
+  LightWeightString &operator=(const char *cstr) {
     data = cstr;
     length = cstr != nullptr ? strlen(cstr) : 0;
     return *this;
   }
-  const char* c_str() { return data; }
+  const char *c_str() { return data; }
 };
 #else
 using LightWeightString = std::string;
@@ -396,42 +394,42 @@ struct LogEntry {
 };
 
 class ILogFormatter {
- public:
+public:
   virtual ~ILogFormatter() = default;
-  virtual void format(LogEntry& e, LogString& log) = 0;
+  virtual void format(LogEntry &e, LogString &log) = 0;
 };
 
 class DefaultLogFormatter : public ILogFormatter {
- public:
+public:
   // 2020-04-08 16:17:52.311[14519/0][D][tag][main.cpp,83,test_func]log content
-  static constexpr const char* kDefaultFormat =
+  static constexpr const char *kDefaultFormat =
       "$time[$pid/$tid][$level][$tag][$file,$func,$line]$log";
   // 2020-04-08 16:17:52.311
-  static constexpr const char* kDefaultTimeFormat = "%Y-%m-%d %H:%M:%S";
+  static constexpr const char *kDefaultTimeFormat = "%Y-%m-%d %H:%M:%S";
 
- public:
-  DefaultLogFormatter(const std::string& format = kDefaultFormat,
-                      const std::string& time_format = kDefaultTimeFormat);
+public:
+  DefaultLogFormatter(const std::string &format = kDefaultFormat,
+                      const std::string &time_format = kDefaultTimeFormat);
 
   virtual ~DefaultLogFormatter();
-  virtual void format(LogEntry& e, LogString& log);
+  virtual void format(LogEntry &e, LogString &log);
 
-  void setFormat(const std::string& format);
-  void setTimeFormat(const std::string& format) { time_format_ = format; }
+  void setFormat(const std::string &format);
+  void setTimeFormat(const std::string &format) { time_format_ = format; }
   std::string format() const { return format_; }
   std::string timeFormat() const { return time_format_; }
   std::string parsedFormat() const { return parsed_format_; }
 
- private:
-  static std::string parseFormat_(const std::string& format);
+private:
+  static std::string parseFormat_(const std::string &format);
 
   template <typename... Args>
-  void doFormat_(LogString* log, const char* format, const Args&... args) {
+  void doFormat_(LogString *log, const char *format, const Args &...args) {
     Variant v_args[sizeof...(args) + 1] = {args...};
     typesafeFormat(log, format, "", v_args, sizeof...(args));
   }
 
- private:
+private:
   std::string format_;
   std::string time_format_;
   std::string parsed_format_;
@@ -439,152 +437,151 @@ class DefaultLogFormatter : public ILogFormatter {
 
 // A ILogAppender represents a device where the log will be written to
 class ILogAppender {
- public:
+public:
   virtual ~ILogAppender() = default;
 
   // Overwrite this method to write log when a log is fired
-  virtual void doWrite(LogEntry& e) = 0;
+  virtual void doWrite(LogEntry &e) = 0;
 };
 
 class ILogFilter {
- public:
+public:
   virtual ~ILogFilter() = default;
 
   // return true if the message passes through the filter and should be
   // distributed, false otherwise
-  virtual bool filter(const LogEntry& e) = 0;
+  virtual bool filter(const LogEntry &e) = 0;
 };
 
 // Base class for all appender
 class LogAppenderBase : public ILogAppender {
- public:
+public:
   LogAppenderBase();
   virtual ~LogAppenderBase();
 
-  void setFilter(std::function<bool(const LogEntry& e)> filter);
-  void setFilter(ILogFilter* filter);
-  void setFormatter(ILogFormatter* formatter);
+  void setFilter(std::function<bool(const LogEntry &e)> filter);
+  void setFilter(ILogFilter *filter);
+  void setFormatter(ILogFormatter *formatter);
 
- public:
+public:
   // from ILogAppender
-  virtual void doWrite(LogEntry& e);
+  virtual void doWrite(LogEntry &e);
 
   // Overwrite this template method
-  virtual void doWriteLog(const LogEntry& e, LogString& log) = 0;
+  virtual void doWriteLog(const LogEntry &e, LogString &log) = 0;
 
- private:
+private:
   LogString log_;
-  ILogFilter* filter_;
-  ILogFormatter* formatter_;
+  ILogFilter *filter_;
+  ILogFormatter *formatter_;
 };
 
 class Sentry;
 
 class Logger {
- public:
-  Logger& this_;
-  Logger& __ZLOG_A__;
-  Logger& __ZLOG_B__;
-  Logger& __ZLOG_C__;
+public:
+  Logger &this_;
+  Logger &__ZLOG_A__;
+  Logger &__ZLOG_B__;
+  Logger &__ZLOG_C__;
 
- public:
-  static Logger* instance(LogLevel level);
-  static Logger* instance();
+public:
+  static Logger *instance(LogLevel level);
+  static Logger *instance();
   static void reset();
 
-  Logger& prepare(LogLevel level, const char* tag, const char* func,
-                  const char* file, int line, const Sentry& sentry);
-  Logger& prepare(LogLevel level, const char* tag, const char* func,
-                  const char* file, int line);
+  Logger &prepare(LogLevel level, const char *tag, const char *func,
+                  const char *file, int line, const Sentry &sentry);
+  Logger &prepare(LogLevel level, const char *tag, const char *func,
+                  const char *file, int line);
 
-  Logger& logV(const char* format, va_list vlist);
-  Logger& log(const char* format, ...);
+  Logger &logV(const char *format, va_list vlist);
+  Logger &log(const char *format, ...);
 
   template <typename... Args>
-  Logger& operator()(const char* format, const Args&... args) {
+  Logger &operator()(const char *format, const Args &...args) {
     Variant v_args[sizeof...(args) + 1] = {args...};
     typesafeFormat_(format, v_args, sizeof...(args));
     return *this;
   }
 
-  Logger& operator()() { return *this; }
-  Logger& hex(const char* cstr);
-  Logger& hex(const std::string& str);
-  Logger& hex(const void* data, size_t size);
+  Logger &operator()() { return *this; }
+  Logger &hex(const char *cstr);
+  Logger &hex(const std::string &str);
+  Logger &hex(const void *data, size_t size);
   operator std::nullptr_t() const { return nullptr; }
 
-  void addAppender(ILogAppender* appender);
+  void addAppender(ILogAppender *appender);
   void setLevel(LogLevel level);
   void commit();
 
-  template <typename T>
-  Logger& operator<<(const T& value) {
+  template <typename T> Logger &operator<<(const T &value) {
     s_tss_log.log.append(value);
     return *this;
   }
 
- private:
+private:
   Logger();
   ~Logger();
-  Logger(const Logger&) = delete;
-  Logger& operator=(const Logger&) = delete;
+  Logger(const Logger &) = delete;
+  Logger &operator=(const Logger &) = delete;
 
   bool isEnabledFor_(LogLevel level) const;
   void writeToAllAppender_();
-  void typesafeFormat_(const char* format, const Variant* args,
+  void typesafeFormat_(const char *format, const Variant *args,
                        size_t num_args);
   void reset_();
 
- private:
+private:
   static thread_local LogEntry s_tss_log;
   static thread_local unsigned s_tss_flags;
 
- private:
+private:
   LogLevel level_;
-  std::vector<ILogAppender*> appenders_;
+  std::vector<ILogAppender *> appenders_;
   std::mutex mutex_;
 };
 
 // A wrapper class which use some tricks to avoid
 // unnecessary function call overhead associate with Logger::instance().
 class Wrapper {
- public:
-  Wrapper(Logger* logger) : logger_(logger) {}
+public:
+  Wrapper(Logger *logger) : logger_(logger) {}
 
   operator bool() const { return logger_ == NULL; }
-  Logger* operator->() const { return logger_; }
-  operator Logger*() const { return logger_; }
+  Logger *operator->() const { return logger_; }
+  operator Logger *() const { return logger_; }
   operator std::nullptr_t() const { return nullptr; }
 
- private:
-  Logger* logger_;
+private:
+  Logger *logger_;
 };
 
 // Auto call commit()
 class Sentry {
- public:
-  Sentry(Logger* logger) : logger_(logger) {}
+public:
+  Sentry(Logger *logger) : logger_(logger) {}
   ~Sentry() { logger_->commit(); }
 
- private:
-  Logger* logger_;
+private:
+  Logger *logger_;
 };
 
 // A simple scope tracer that writes the scope Enter and Exit to zlog.
 class ScopedLog {
   using time_point = std::chrono::steady_clock::time_point;
 
- public:
+public:
   // Use constructor to write log of entering a scope.
-  ScopedLog(LogLevel level, const char* tag, const char* func, const char* file,
-            int line, const char* name, const std::string& args);
+  ScopedLog(LogLevel level, const char *tag, const char *func, const char *file,
+            int line, const char *name, const std::string &args);
 
   // Use destructor to write log of exiting a scope normally or with a
   // exception.
   ~ScopedLog();
 
- private:
-  Logger* logger_;
+private:
+  Logger *logger_;
   LogLevel level_;
   LightWeightString name_;
   LightWeightString tag_;
@@ -594,16 +591,16 @@ class ScopedLog {
   time_point time_;
 };
 
-inline void addAppender(ILogAppender* appender) {
+inline void addAppender(ILogAppender *appender) {
   Logger::instance()->addAppender(appender);
 }
 inline void setLevel(LogLevel level) { Logger::instance()->setLevel(level); }
 inline void reset() { Logger::reset(); }
 
-std::string hex(const void* buf, size_t size);
-std::string hex(const char* cstr);
-std::string hex(const std::string& str);
+std::string hex(const void *buf, size_t size);
+std::string hex(const char *cstr);
+std::string hex(const std::string &str);
 
-}  // namespace zlog
+} // namespace zlog
 
 #endif /* _ZLOG_ZLOG_H_ */

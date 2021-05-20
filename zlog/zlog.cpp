@@ -24,7 +24,7 @@
 
 namespace zlog {
 
-#define CONST_STRING(name, value) static const char* name = value
+#define CONST_STRING(name, value) static const char *name = value
 
 CONST_STRING(kStringTrue, "true");
 CONST_STRING(kStringFalse, "false");
@@ -34,60 +34,64 @@ CONST_STRING(kFormatPointer, "%p");
 std::nullptr_t g_unused_wtf = nullptr;
 NullLogger g_null_logger;
 
-std::string hex(const void* buf, size_t size) {
-  static const char* HEX = "0123456789abcdef";
+std::string hex(const void *buf, size_t size) {
+  static const char *HEX = "0123456789abcdef";
 
-  const uint8_t* input = (const uint8_t*)buf;
+  const uint8_t *input = (const uint8_t *)buf;
   std::string str;
   str.reserve(size << 1);
 
   uint8_t t, a, b;
   for (size_t i = 0; i < size; ++i) {
     t = input[i];
-    a = t >> 4;    // a = t / 16;
-    b = t & 0x0f;  // b = t % 16;
+    a = t >> 4;   // a = t / 16;
+    b = t & 0x0f; // b = t % 16;
     str.append(1, HEX[a]);
     str.append(1, HEX[b]);
   }
   return str;
 }
 
-std::string hex(const char* cstr) { return hex(cstr, strlen(cstr)); }
+std::string hex(const char *cstr) { return hex(cstr, strlen(cstr)); }
 
-std::string hex(const std::string& str) { return hex(str.c_str(), str.size()); }
+std::string hex(const std::string &str) { return hex(str.c_str(), str.size()); }
 
-const char* zfunc_(const char* func, const char* pretty_func) {
+const char *zfunc_(const char *func, const char *pretty_func) {
   size_t func_len = 0;
-  const char* p = pretty_func;
+  const char *p = pretty_func;
   while (true) {
     p = strstr(p, func);
-    if (p == NULL) break;
-    if (func_len == 0) func_len = strlen(func);
-    if (p[func_len] == '(') return p;
+    if (p == NULL)
+      break;
+    if (func_len == 0)
+      func_len = strlen(func);
+    if (p[func_len] == '(')
+      return p;
     p += func_len;
   }
   return func;
 }
 
-std::string get_simple_funcname_(const char* fullname) {
-  const char* p = strchr(fullname, '(');
-  if (p == NULL) return fullname;
+std::string get_simple_funcname_(const char *fullname) {
+  const char *p = strchr(fullname, '(');
+  if (p == NULL)
+    return fullname;
   return std::string(fullname, p - fullname);
 }
 
-static const char* get_simple_filename_(const char* path) {
+static const char *get_simple_filename_(const char *path) {
 #ifdef _WIN32
   static const char kSepChar = '\\';
 #else
   static const char kSepChar = '/';
 #endif
-  const char* pch = strrchr(path, kSepChar);
+  const char *pch = strrchr(path, kSepChar);
   return pch == NULL ? path : pch + 1;
 }
 
-static const char* vsformat_(const char* format, va_list vl) {
+static const char *vsformat_(const char *format, va_list vl) {
   int size = 512;
-  char* buf = (char*)malloc(size);
+  char *buf = (char *)malloc(size);
   if (buf != NULL) {
     memset(buf, 0, size);
     va_list vlcopy;
@@ -95,7 +99,7 @@ static const char* vsformat_(const char* format, va_list vl) {
     int n = vsnprintf(buf, size, format, vl);
     if (n >= size) {
       size = n + 1;
-      buf = (char*)realloc(buf, size);
+      buf = (char *)realloc(buf, size);
       if (buf != NULL) {
         n = vsnprintf(buf, size, format, vlcopy);
       }
@@ -105,23 +109,23 @@ static const char* vsformat_(const char* format, va_list vl) {
   return buf;
 }
 
-static const char* loglevel_to_string_(LogLevel level) {
-  static const char* const kLevelStrings[] = {
-      "V",  // verbose
-      "D",  // debug
-      "I",  // info
-      "W",  // warn
-      "E",  // error
-      "F"   // fatal
+static const char *loglevel_to_string_(LogLevel level) {
+  static const char *const kLevelStrings[] = {
+      "V", // verbose
+      "D", // debug
+      "I", // info
+      "W", // warn
+      "E", // error
+      "F"  // fatal
   };
   return kLevelStrings[level];
 }
 
-static size_t format_timeval_(std::chrono::system_clock::time_point& tp,
-                              const char* format, char* buf, size_t sz) {
+static size_t format_timeval_(std::chrono::system_clock::time_point &tp,
+                              const char *format, char *buf, size_t sz) {
   size_t written = -1;
   time_t tp_sec = std::chrono::system_clock::to_time_t(tp);
-  struct tm* gm = localtime(&tp_sec);
+  struct tm *gm = localtime(&tp_sec);
   if (gm) {
     written = strftime(buf, sz, format, gm);
     if ((written > 0) && (written < sz)) {
@@ -150,41 +154,41 @@ static int get_thread_id_() {
 
 size_t Variant::size() const {
   switch (type_) {
-    case kTypeBool:
-      return sizeof(bool);
-    case kTypeChar:
-    case kTypeSChar:
-    case kTypeUChar:
-      return sizeof(char);
-    case kTypeShort:
-    case kTypeUShort:
-      return sizeof(short);
-    case kTypeInt:
-    case kTypeUInt:
-      return sizeof(int);
-    case kTypeLong:
-    case kTypeULong:
-      return sizeof(long);
-    case kTypeLongLong:
-    case kTypeULongLong:
-      return sizeof(long long);
-    case kTypeFloat:
-      return sizeof(float);
-    case kTypeDouble:
-      return sizeof(double);
-    case kTypeLongDouble:
-      return sizeof(long double);
-    case kTypeVoidPtr:
-    case kTypeCharPtr:
-      return sizeof(void*);
-    case kTypeNullPtr:
-      return sizeof(std::nullptr_t);
-    default:
-      return 0;
+  case kTypeBool:
+    return sizeof(bool);
+  case kTypeChar:
+  case kTypeSChar:
+  case kTypeUChar:
+    return sizeof(char);
+  case kTypeShort:
+  case kTypeUShort:
+    return sizeof(short);
+  case kTypeInt:
+  case kTypeUInt:
+    return sizeof(int);
+  case kTypeLong:
+  case kTypeULong:
+    return sizeof(long);
+  case kTypeLongLong:
+  case kTypeULongLong:
+    return sizeof(long long);
+  case kTypeFloat:
+    return sizeof(float);
+  case kTypeDouble:
+    return sizeof(double);
+  case kTypeLongDouble:
+    return sizeof(long double);
+  case kTypeVoidPtr:
+  case kTypeCharPtr:
+    return sizeof(void *);
+  case kTypeNullPtr:
+    return sizeof(std::nullptr_t);
+  default:
+    return 0;
   }
 }
 
-static const char* const kBinStringTable[256] = {
+static const char *const kBinStringTable[256] = {
     "00000000", "00000001", "00000010", "00000011", "00000100", "00000101",
     "00000110", "00000111", "00001000", "00001001", "00001010", "00001011",
     "00001100", "00001101", "00001110", "00001111", "00010000", "00010001",
@@ -229,8 +233,8 @@ static const char* const kBinStringTable[256] = {
     "11110110", "11110111", "11111000", "11111001", "11111010", "11111011",
     "11111100", "11111101", "11111110", "11111111"};
 
-static std::string bytes_to_binstring_(const void* buffer, size_t length) {
-  const uint8_t* input = (const uint8_t*)buffer;
+static std::string bytes_to_binstring_(const void *buffer, size_t length) {
+  const uint8_t *input = (const uint8_t *)buffer;
   std::string str;
   for (size_t i = 0; i < length; ++i) {
     if (i > 0) {
@@ -241,13 +245,13 @@ static std::string bytes_to_binstring_(const void* buffer, size_t length) {
   return str;
 }
 
-static std::string bytes_to_hexstring_(const void* buffer, size_t length,
+static std::string bytes_to_hexstring_(const void *buffer, size_t length,
                                        bool uppercase) {
-  static const char* kLowercaseHex = "0123456789abcdef";
-  static const char* kUppercaseHex = "0123456789ABCDEF";
+  static const char *kLowercaseHex = "0123456789abcdef";
+  static const char *kUppercaseHex = "0123456789ABCDEF";
 
-  const char* hex_string = uppercase ? kUppercaseHex : kLowercaseHex;
-  const uint8_t* input = (const uint8_t*)buffer;
+  const char *hex_string = uppercase ? kUppercaseHex : kLowercaseHex;
+  const uint8_t *input = (const uint8_t *)buffer;
 
   std::string str("0x");
   for (size_t i = 0; i < length; ++i) {
@@ -260,8 +264,7 @@ static std::string bytes_to_hexstring_(const void* buffer, size_t length,
   return str;
 }
 
-template <typename T>
-static std::string int_to_binstring_(T x) {
+template <typename T> static std::string int_to_binstring_(T x) {
   unsigned char bytes[sizeof(T)] = {0};
   for (size_t i = 0; i < sizeof(T); ++i) {
     bytes[i] = (x >> ((sizeof(T) - 1 - i) << 3)) & 0xFF;
@@ -282,29 +285,29 @@ LogString::LogString() {}
 
 LogString::~LogString() {}
 
-void LogString::appendFormat(const char* format, ...) {
+void LogString::appendFormat(const char *format, ...) {
   va_list vl;
   va_start(vl, format);
   appendFormatV(format, vl);
   va_end(vl);
 }
 
-void LogString::appendFormatV(const char* format, va_list vl) {
-  const char* str = vsformat_(format, vl);
+void LogString::appendFormatV(const char *format, va_list vl) {
+  const char *str = vsformat_(format, vl);
   if (str != NULL) {
     str_.append(str);
-    free((void*)str);
+    free((void *)str);
   }
 }
 
-void LogString::format(const char* format, ...) {
+void LogString::format(const char *format, ...) {
   va_list vl;
   va_start(vl, format);
   formatV(format, vl);
   va_end(vl);
 }
 
-void LogString::formatV(const char* format, va_list vl) {
+void LogString::formatV(const char *format, va_list vl) {
   clear();
   appendFormatV(format, vl);
 }
@@ -315,196 +318,195 @@ void LogString::append(bool val) {
 
 void LogString::append(char val) { str_.append(1, val); }
 
-void LogString::append(const void* val) { appendFormat(kFormatPointer, val); }
+void LogString::append(const void *val) { appendFormat(kFormatPointer, val); }
 
-void LogString::append(const char* val) {
+void LogString::append(const char *val) {
   str_.append(val == nullptr ? kStringNullptr : val);
 }
 
-void LogString::append(const std::string& val) { str_.append(val); }
+void LogString::append(const std::string &val) { str_.append(val); }
 
 void LogString::append(std::nullptr_t np) { append(kStringNullptr); }
 
-void LogString::append(const char* val, size_t n) { str_.append(val, n); }
+void LogString::append(const char *val, size_t n) { str_.append(val, n); }
 
-std::string& LogString::str() { return str_; }
+std::string &LogString::str() { return str_; }
 
-const std::string& LogString::str() const { return str_; }
+const std::string &LogString::str() const { return str_; }
 
 void LogString::clear() { str_.clear(); }
 
-void LogString::appendVariant(const Variant& v) {
+void LogString::appendVariant(const Variant &v) {
   switch (v.type()) {
-    case Variant::kTypeBool:
-      append(v.value().b);
-      break;
-    case Variant::kTypeChar:
-      append(v.value().c);
-      break;
-    case Variant::kTypeSChar:
-      append(v.value().s8);
-      break;
-    case Variant::kTypeUChar:
-      append(v.value().u8);
-      break;
-    case Variant::kTypeShort:
-      append(v.value().s16);
-      break;
-    case Variant::kTypeUShort:
-      append(v.value().u16);
-      break;
-    case Variant::kTypeInt:
-      append(v.value().i32);
-      break;
-    case Variant::kTypeUInt:
-      append(v.value().u32);
-      break;
-    case Variant::kTypeLong:
-      append(v.value().l);
-      break;
-    case Variant::kTypeULong:
-      append(v.value().ul);
-      break;
-    case Variant::kTypeLongLong:
-      append(v.value().ll);
-      break;
-    case Variant::kTypeULongLong:
-      append(v.value().ull);
-      break;
-    case Variant::kTypeFloat:
-      append(v.value().f);
-      break;
-    case Variant::kTypeDouble:
-      append(v.value().d);
-      break;
-    case Variant::kTypeLongDouble:
-      append(v.value().ld);
-      break;
-    case Variant::kTypeVoidPtr:
-      append(v.value().p);
-      break;
-    case Variant::kTypeCharPtr:
-      append(v.value().s);
-      break;
-    case Variant::kTypeNullPtr:
-      append(v.value().np);
-      break;
-    default:
-      break;
+  case Variant::kTypeBool:
+    append(v.value().b);
+    break;
+  case Variant::kTypeChar:
+    append(v.value().c);
+    break;
+  case Variant::kTypeSChar:
+    append(v.value().s8);
+    break;
+  case Variant::kTypeUChar:
+    append(v.value().u8);
+    break;
+  case Variant::kTypeShort:
+    append(v.value().s16);
+    break;
+  case Variant::kTypeUShort:
+    append(v.value().u16);
+    break;
+  case Variant::kTypeInt:
+    append(v.value().i32);
+    break;
+  case Variant::kTypeUInt:
+    append(v.value().u32);
+    break;
+  case Variant::kTypeLong:
+    append(v.value().l);
+    break;
+  case Variant::kTypeULong:
+    append(v.value().ul);
+    break;
+  case Variant::kTypeLongLong:
+    append(v.value().ll);
+    break;
+  case Variant::kTypeULongLong:
+    append(v.value().ull);
+    break;
+  case Variant::kTypeFloat:
+    append(v.value().f);
+    break;
+  case Variant::kTypeDouble:
+    append(v.value().d);
+    break;
+  case Variant::kTypeLongDouble:
+    append(v.value().ld);
+    break;
+  case Variant::kTypeVoidPtr:
+    append(v.value().p);
+    break;
+  case Variant::kTypeCharPtr:
+    append(v.value().s);
+    break;
+  case Variant::kTypeNullPtr:
+    append(v.value().np);
+    break;
+  default:
+    break;
   }
 }
 
-void LogString::appendVariantFormat(char format, const Variant& v) {
+void LogString::appendVariantFormat(char format, const Variant &v) {
   switch (format) {
-    case '_': {
-      appendVariant(v);
-      break;
-    }
-    case 'b': {
-      appendVariantBinFormat_(v);
-      break;
-    }
-    case 'p':
-    case 'x':
-    case 'X': {
-      bool uppercase = (format == 'X' ? true : false);
-      appendVariantHexFormat_(v, uppercase);
-      break;
-    }
-    default:
-      break;
+  case '_': {
+    appendVariant(v);
+    break;
+  }
+  case 'b': {
+    appendVariantBinFormat_(v);
+    break;
+  }
+  case 'p':
+  case 'x':
+  case 'X': {
+    bool uppercase = (format == 'X' ? true : false);
+    appendVariantHexFormat_(v, uppercase);
+    break;
+  }
+  default:
+    break;
   };
 }
 
-void LogString::appendVariantBinFormat_(const Variant& v) {
+void LogString::appendVariantBinFormat_(const Variant &v) {
   switch (v.type()) {
-    case Variant::kTypeBool:
-    case Variant::kTypeChar:
-    case Variant::kTypeSChar:
-    case Variant::kTypeUChar:
-      append(kBinStringTable[v.value().u8]);
-      break;
-    case Variant::kTypeShort:
-    case Variant::kTypeUShort:
-      append(int_to_binstring_(v.value().u16));
-      break;
-    case Variant::kTypeInt:
-    case Variant::kTypeUInt:
-      append(int_to_binstring_(v.value().u32));
-      break;
-    case Variant::kTypeLong:
-    case Variant::kTypeULong:
-      append(int_to_binstring_(v.value().ul));
-      break;
-    case Variant::kTypeLongLong:
-    case Variant::kTypeULongLong:
-      append(int_to_binstring_(v.value().ull));
-      break;
-    case Variant::kTypeFloat:
-    case Variant::kTypeDouble:
-    case Variant::kTypeLongDouble:
-    case Variant::kTypeVoidPtr:
-    case Variant::kTypeCharPtr:
-    case Variant::kTypeNullPtr:
-      assert(false);
-      break;
-    default:
-      break;
+  case Variant::kTypeBool:
+  case Variant::kTypeChar:
+  case Variant::kTypeSChar:
+  case Variant::kTypeUChar:
+    append(kBinStringTable[v.value().u8]);
+    break;
+  case Variant::kTypeShort:
+  case Variant::kTypeUShort:
+    append(int_to_binstring_(v.value().u16));
+    break;
+  case Variant::kTypeInt:
+  case Variant::kTypeUInt:
+    append(int_to_binstring_(v.value().u32));
+    break;
+  case Variant::kTypeLong:
+  case Variant::kTypeULong:
+    append(int_to_binstring_(v.value().ul));
+    break;
+  case Variant::kTypeLongLong:
+  case Variant::kTypeULongLong:
+    append(int_to_binstring_(v.value().ull));
+    break;
+  case Variant::kTypeFloat:
+  case Variant::kTypeDouble:
+  case Variant::kTypeLongDouble:
+  case Variant::kTypeVoidPtr:
+  case Variant::kTypeCharPtr:
+  case Variant::kTypeNullPtr:
+    assert(false);
+    break;
+  default:
+    break;
   }
 }
 
-void LogString::appendVariantHexFormat_(const Variant& v, bool uppercase) {
+void LogString::appendVariantHexFormat_(const Variant &v, bool uppercase) {
   switch (v.type()) {
-    case Variant::kTypeBool:
-    case Variant::kTypeChar:
-    case Variant::kTypeSChar:
-    case Variant::kTypeUChar:
-      append(int_to_hexstring_(v.value().u8, uppercase));
-      break;
-    case Variant::kTypeShort:
-    case Variant::kTypeUShort:
-      append(int_to_hexstring_(v.value().u16, uppercase));
-      break;
-    case Variant::kTypeInt:
-    case Variant::kTypeUInt:
-      append(int_to_hexstring_(v.value().u32, uppercase));
-      break;
-    case Variant::kTypeLong:
-    case Variant::kTypeULong:
-      append(int_to_hexstring_(v.value().ul, uppercase));
-      break;
-    case Variant::kTypeLongLong:
-    case Variant::kTypeULongLong:
-      append(int_to_hexstring_(v.value().ull, uppercase));
-      break;
-    case Variant::kTypeFloat:
-    case Variant::kTypeDouble:
-    case Variant::kTypeLongDouble:
-      assert(false);
-      break;
-    case Variant::kTypeVoidPtr:
-    case Variant::kTypeCharPtr:
-      append(v.value().p);
-      break;
-    case Variant::kTypeNullPtr:
-      append(v.value().np);
-      break;
-    default:
-      break;
+  case Variant::kTypeBool:
+  case Variant::kTypeChar:
+  case Variant::kTypeSChar:
+  case Variant::kTypeUChar:
+    append(int_to_hexstring_(v.value().u8, uppercase));
+    break;
+  case Variant::kTypeShort:
+  case Variant::kTypeUShort:
+    append(int_to_hexstring_(v.value().u16, uppercase));
+    break;
+  case Variant::kTypeInt:
+  case Variant::kTypeUInt:
+    append(int_to_hexstring_(v.value().u32, uppercase));
+    break;
+  case Variant::kTypeLong:
+  case Variant::kTypeULong:
+    append(int_to_hexstring_(v.value().ul, uppercase));
+    break;
+  case Variant::kTypeLongLong:
+  case Variant::kTypeULongLong:
+    append(int_to_hexstring_(v.value().ull, uppercase));
+    break;
+  case Variant::kTypeFloat:
+  case Variant::kTypeDouble:
+  case Variant::kTypeLongDouble:
+    assert(false);
+    break;
+  case Variant::kTypeVoidPtr:
+  case Variant::kTypeCharPtr:
+    append(v.value().p);
+    break;
+  case Variant::kTypeNullPtr:
+    append(v.value().np);
+    break;
+  default:
+    break;
   }
 }
 
 class DefaultLogFilter : public ILogFilter {
- public:
-  template <typename F>
-  DefaultLogFilter(F&& f) : filter_(std::forward<F>(f)) {}
+public:
+  template <typename F> DefaultLogFilter(F &&f) : filter_(std::forward<F>(f)) {}
   virtual ~DefaultLogFilter() {}
-  virtual bool filter(const LogEntry& e) {
+  virtual bool filter(const LogEntry &e) {
     return filter_ ? filter_(e) : false;
   }
 
- private:
-  std::function<bool(const LogEntry& e)> filter_;
+private:
+  std::function<bool(const LogEntry &e)> filter_;
 };
 
 LogAppenderBase::LogAppenderBase() {
@@ -517,25 +519,25 @@ LogAppenderBase::~LogAppenderBase() {
   delete formatter_;
 }
 
-void LogAppenderBase::setFilter(std::function<bool(const LogEntry& e)> filter) {
+void LogAppenderBase::setFilter(std::function<bool(const LogEntry &e)> filter) {
   setFilter(new DefaultLogFilter(std::move(filter)));
 }
 
-void LogAppenderBase::setFilter(ILogFilter* filter) {
+void LogAppenderBase::setFilter(ILogFilter *filter) {
   if (filter != filter_) {
     delete filter_;
     filter_ = filter;
   }
 }
 
-void LogAppenderBase::setFormatter(ILogFormatter* formatter) {
+void LogAppenderBase::setFormatter(ILogFormatter *formatter) {
   if (formatter != formatter_) {
     delete formatter_;
     formatter_ = formatter;
   }
 }
 
-void LogAppenderBase::doWrite(LogEntry& e) {
+void LogAppenderBase::doWrite(LogEntry &e) {
   if (filter_ != NULL && !filter_->filter(e)) {
     return;
   }
@@ -546,22 +548,22 @@ void LogAppenderBase::doWrite(LogEntry& e) {
   }
 }
 
-DefaultLogFormatter::DefaultLogFormatter(const std::string& format,
-                                         const std::string& time_format)
+DefaultLogFormatter::DefaultLogFormatter(const std::string &format,
+                                         const std::string &time_format)
     : format_(format), time_format_(time_format) {
   parsed_format_ = parseFormat_(format);
 }
 
 DefaultLogFormatter::~DefaultLogFormatter() {}
 
-void DefaultLogFormatter::setFormat(const std::string& format) {
+void DefaultLogFormatter::setFormat(const std::string &format) {
   format_ = format;
   parsed_format_ = parseFormat_(format);
 }
 
-static std::string& string_replace_(std::string& str,
-                                    const std::string& old_str,
-                                    const std::string& new_str) {
+static std::string &string_replace_(std::string &str,
+                                    const std::string &old_str,
+                                    const std::string &new_str) {
   size_t old_len = old_str.size(), new_len = new_str.size();
   std::string::size_type curr_pos = 0, prev_pos = 0;
   while ((curr_pos = str.find(old_str, prev_pos)) != std::string::npos) {
@@ -571,7 +573,7 @@ static std::string& string_replace_(std::string& str,
   return str;
 }
 
-std::string DefaultLogFormatter::parseFormat_(const std::string& format) {
+std::string DefaultLogFormatter::parseFormat_(const std::string &format) {
   std::string new_format(format);
   string_replace_(new_format, "%", "%%");
   string_replace_(new_format, "$$", "$");
@@ -587,10 +589,10 @@ std::string DefaultLogFormatter::parseFormat_(const std::string& format) {
   return new_format;
 }
 
-void DefaultLogFormatter::format(LogEntry& e, LogString& log) {
+void DefaultLogFormatter::format(LogEntry &e, LogString &log) {
   char time_buf[128] = {0};
   format_timeval_(e.time, time_format_.c_str(), time_buf, 128);
-  const char* level = loglevel_to_string_(e.level);
+  const char *level = loglevel_to_string_(e.level);
 
   doFormat_(&log, parsed_format_.c_str(), level, time_buf, e.log.str().c_str(),
             e.tag.c_str(), e.func.c_str(), e.file.c_str(), e.line, e.pid,
@@ -600,22 +602,22 @@ void DefaultLogFormatter::format(LogEntry& e, LogString& log) {
 }
 
 class HexDumper {
- public:
-  const std::string& toHexString(const void* data, size_t size);
+public:
+  const std::string &toHexString(const void *data, size_t size);
 
- private:
+private:
   void dumpHeader_(size_t size);
-  int dumpLine_(size_t line, const unsigned char* data, size_t size);
-  void dumpData_(const void* data, size_t size);
+  int dumpLine_(size_t line, const unsigned char *data, size_t size);
+  void dumpData_(const void *data, size_t size);
 
- private:
+private:
   enum { kLineBufferSize = 128 };
 
   LogString buffer_;
   char line_buffer_[kLineBufferSize];
 };
 
-const std::string& HexDumper::toHexString(const void* data, size_t size) {
+const std::string &HexDumper::toHexString(const void *data, size_t size) {
   buffer_.clear();
   dumpData_(data, size);
   return buffer_.str();
@@ -632,8 +634,9 @@ static inline bool is_visible_char_(unsigned char ch) {
   return 32 <= ch && ch <= 126;
 }
 
-int HexDumper::dumpLine_(size_t line, const unsigned char* data, size_t size) {
-  if (data == NULL || size == 0) return 0;
+int HexDumper::dumpLine_(size_t line, const unsigned char *data, size_t size) {
+  if (data == NULL || size == 0)
+    return 0;
 
   int offset = 0;
   offset += snprintf(line_buffer_ + offset, kLineBufferSize - offset,
@@ -667,10 +670,10 @@ int HexDumper::dumpLine_(size_t line, const unsigned char* data, size_t size) {
   return offset;
 }
 
-void HexDumper::dumpData_(const void* data, size_t size) {
+void HexDumper::dumpData_(const void *data, size_t size) {
   if (data != NULL && size > 0) {
     dumpHeader_(size);
-    const unsigned char* begin = static_cast<const unsigned char*>(data);
+    const unsigned char *begin = static_cast<const unsigned char *>(data);
     size_t line = size / 16;
     for (size_t i = 0; i < line; ++i) {
       dumpLine_(i, begin, 16);
@@ -690,23 +693,20 @@ thread_local unsigned Logger::s_tss_flags;
 enum { kFlagWriting = 0x1 };
 
 Logger::Logger()
-    : this_(*this),
-      __ZLOG_A__(*this),
-      __ZLOG_B__(*this),
-      __ZLOG_C__(*this),
+    : this_(*this), __ZLOG_A__(*this), __ZLOG_B__(*this), __ZLOG_C__(*this),
       level_(kLevelVerbose) {}
 
 Logger::~Logger() { reset_(); }
 
-Logger* Logger::instance(LogLevel level) {
-  Logger* logger = instance();
+Logger *Logger::instance(LogLevel level) {
+  Logger *logger = instance();
   if (logger->isEnabledFor_(level)) {
     return logger;
   }
   return NULL;
 }
 
-Logger* Logger::instance() {
+Logger *Logger::instance() {
   static Logger s_instance;
   return &s_instance;
 }
@@ -722,14 +722,14 @@ void Logger::reset_() {
   appenders_.clear();
 }
 
-Logger& Logger::prepare(LogLevel level, const char* tag, const char* func,
-                        const char* file, int line, const Sentry& sentry) {
+Logger &Logger::prepare(LogLevel level, const char *tag, const char *func,
+                        const char *file, int line, const Sentry &sentry) {
   return prepare(level, tag, func, file, line);
 }
 
-Logger& Logger::prepare(LogLevel level, const char* tag, const char* func,
-                        const char* file, int line) {
-  LogEntry& e = s_tss_log;
+Logger &Logger::prepare(LogLevel level, const char *tag, const char *func,
+                        const char *file, int line) {
+  LogEntry &e = s_tss_log;
   e.level = level;
   e.tag = tag;
   e.func = func;
@@ -742,12 +742,12 @@ Logger& Logger::prepare(LogLevel level, const char* tag, const char* func,
   return *this;
 }
 
-Logger& Logger::logV(const char* format, va_list vlist) {
+Logger &Logger::logV(const char *format, va_list vlist) {
   s_tss_log.log.formatV(format, vlist);
   return *this;
 }
 
-Logger& Logger::log(const char* format, ...) {
+Logger &Logger::log(const char *format, ...) {
   va_list vlist;
   va_start(vlist, format);
   logV(format, vlist);
@@ -755,20 +755,20 @@ Logger& Logger::log(const char* format, ...) {
   return *this;
 }
 
-Logger& Logger::hex(const char* cstr) { return hex(cstr, strlen(cstr)); }
+Logger &Logger::hex(const char *cstr) { return hex(cstr, strlen(cstr)); }
 
-Logger& Logger::hex(const std::string& str) {
+Logger &Logger::hex(const std::string &str) {
   return hex(str.data(), str.size());
 }
 
-Logger& Logger::hex(const void* data, size_t size) {
+Logger &Logger::hex(const void *data, size_t size) {
   static thread_local HexDumper s_tss_hex;
-  const std::string& str = s_tss_hex.toHexString(data, size);
+  const std::string &str = s_tss_hex.toHexString(data, size);
   s_tss_log.log.append(str);
   return *this;
 }
 
-void Logger::addAppender(ILogAppender* appender) {
+void Logger::addAppender(ILogAppender *appender) {
   assert(appender != NULL);
   std::lock_guard<std::mutex> lock(mutex_);
   appenders_.push_back(appender);
@@ -783,7 +783,7 @@ bool Logger::isEnabledFor_(LogLevel level) const {
 void Logger::commit() { writeToAllAppender_(); }
 
 void Logger::writeToAllAppender_() {
-  LogEntry& e = s_tss_log;
+  LogEntry &e = s_tss_log;
   {
     std::lock_guard<std::mutex> lock(mutex_);
     s_tss_flags |= kFlagWriting;
@@ -797,9 +797,9 @@ void Logger::writeToAllAppender_() {
   e.log.clear();
 }
 
-void Logger::typesafeFormat_(const char* format, const Variant* args,
+void Logger::typesafeFormat_(const char *format, const Variant *args,
                              size_t num_args) {
-  LogEntry& e = s_tss_log;
+  LogEntry &e = s_tss_log;
   typesafeFormat(&e.log, format, e.func.c_str(), args, num_args);
 }
 
@@ -809,10 +809,10 @@ static inline bool is_format_char_(char c) {
 
 static inline bool is_format_index_(char c) { return '0' <= c && c <= '9'; }
 
-bool typesafeFormat(LogString* log, const char* format, const char* func,
-                    const Variant* args, size_t num_args) {
-  const char* start = format;
-  const char* current = start;
+bool typesafeFormat(LogString *log, const char *format, const char *func,
+                    const Variant *args, size_t num_args) {
+  const char *start = format;
+  const char *current = start;
   size_t arg_index = 0;
 
   while (char ch = *current) {
@@ -873,9 +873,9 @@ bool typesafeFormat(LogString* log, const char* format, const char* func,
   return true;
 }
 
-ScopedLog::ScopedLog(LogLevel level, const char* tag, const char* func,
-                     const char* file, int line, const char* name,
-                     const std::string& args) {
+ScopedLog::ScopedLog(LogLevel level, const char *tag, const char *func,
+                     const char *file, int line, const char *name,
+                     const std::string &args) {
   logger_ = Logger::instance(level);
   if (logger_ != NULL) {
     level_ = level;
@@ -907,4 +907,4 @@ ScopedLog::~ScopedLog() {
   }
 }
 
-}  // namespace zlog
+} // namespace zlog
