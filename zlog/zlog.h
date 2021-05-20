@@ -66,6 +66,10 @@
 #include <type_traits>
 #include <vector>
 
+#if __cplusplus >= 201703L
+#include <variant>
+#endif
+
 #include "preprocessor.h"
 
 #define __ZFUNC__ __func__
@@ -87,7 +91,7 @@
 
 #define zlog_fatal_impl(level)                                                 \
   for (zlog::Logger *logger = zlog::Logger::instance(level); logger != NULL;   \
-       logger = NULL, abort())                                                 \
+       logger = NULL, assert(0))                                               \
   zlog::g_unused_wtf = logger                                                  \
                            ->prepare(level, __ZTAG__, __ZFUNC__, __FILE__,     \
                                      __LINE__, zlog::Sentry(logger))           \
@@ -96,7 +100,7 @@
 #define zlog_scope_impl(level, ...)                                            \
   zlog::ScopedLog PP_LINE_VAR(_scoped_log_)(                                   \
       level, __ZTAG__, __ZFUNC__, __FILE__, __LINE__,                          \
-      zlog::typesafeFormatString(__VA_ARGS__).c_str(), "")
+      std::move(zlog::typesafeFormatString(__VA_ARGS__)), "")
 
 #define zlog_function_impl(level, ...)                                         \
   zlog::ScopedLog PP_LINE_VAR(_scoped_log_)(                                   \
@@ -133,7 +137,7 @@
     ;                                                                          \
   else                                                                         \
     for (zlog::Logger *logger = zlog::Logger::instance(zlog::kLevelFatal);     \
-         logger != NULL; logger = NULL, abort())                               \
+         logger != NULL; logger = NULL, assert(0))                             \
     logger                                                                     \
         ->prepare(zlog::kLevelFatal, __ZTAG__, __ZFUNC__, __FILE__, __LINE__,  \
                   zlog::Sentry(logger))("Assertion failed: (%_)", #e)          \
@@ -360,22 +364,41 @@ std::string typesafeFormatString(const char *format, const Args &...args) {
   return log.str();
 }
 
-#ifdef LIGHT_WEIGHT_STRING_ENABLED
-// An light weight string that do not own the memory
-struct LightWeightString {
-  const char *data;
-  size_t length;
-  LightWeightString() : data(nullptr), length(0) {}
-  LightWeightString(const char *p, size_t len) : data(p), length(len) {}
-  LightWeightString &operator=(const char *cstr) {
-    data = cstr;
-    length = cstr != nullptr ? strlen(cstr) : 0;
+#if __cplusplus >= 201703L && defined(ENABLE_STRING_VIEW)
+struct String {
+  std::variant<std::string_view, std::string> str_;
+
+  String() : str_(std::string_view("")) {}
+
+  // can't make sure null-terminated
+  // String(const char *p, size_t len) : str_(std::string_view(p, len)) {}
+
+  // wrap null-terminated str
+  String(const char *cstr) : str_(std::string_view(cstr)) {}
+  String &operator=(const char *cstr) {
+    str_ = std::string_view(cstr);
     return *this;
   }
-  const char *c_str() { return data; }
+
+  // copy from std::string
+  String(const std::string &str) : str_(str) {}
+  String &operator=(const std::string &str) {
+    str_ = str;
+    return *this;
+  }
+  // move from std::string
+  String(const std::string &&str) : str_(str) {}
+  String &operator=(std::string &&str) {
+    str_ = str;
+    return *this;
+  }
+
+  const char *c_str() {
+    return std::visit([](const auto &arg) { return arg.data(); }, str_);
+  }
 };
 #else
-using LightWeightString = std::string;
+using String = std::string;
 #endif
 
 // Represents a single log statement
@@ -385,9 +408,9 @@ struct LogEntry {
   LogLevel level;
   time_point time;
   LogString log;
-  LightWeightString tag;
-  LightWeightString func;
-  LightWeightString file;
+  String tag;
+  String func;
+  String file;
   int line;
   intmax_t pid;
   intmax_t tid;
@@ -574,7 +597,7 @@ class ScopedLog {
 public:
   // Use constructor to write log of entering a scope.
   ScopedLog(LogLevel level, const char *tag, const char *func, const char *file,
-            int line, const char *name, const std::string &args);
+            int line, const std::string &&name, const std::string &args);
 
   // Use destructor to write log of exiting a scope normally or with a
   // exception.
@@ -583,10 +606,10 @@ public:
 private:
   Logger *logger_;
   LogLevel level_;
-  LightWeightString name_;
-  LightWeightString tag_;
-  LightWeightString func_;
-  LightWeightString file_;
+  String name_;
+  String tag_;
+  String func_;
+  String file_;
   int line_;
   time_point time_;
 };

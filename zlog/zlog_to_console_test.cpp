@@ -1,11 +1,8 @@
 #include "zlog.h"
 
-#include <iostream>
+#include "zlog_to_console.h"
 
-#include "base/util/define.h"
-#include "base/util/time_util.hpp"
-
-void make_some_log() {
+int main(int argc, char const *argv[]) {
   int a = 1;
   double b = 1.0;
   std::string c = "str";
@@ -25,13 +22,6 @@ void make_some_log() {
   zinfo("info: ")(a, b, c);
   zwarn("warn: ")(a, b, c);
   zerror("error: ")(a, b, c);
-}
-
-int main(int argc, char const *argv[]) {
-  auto cost = base::util::timeCostInMilliseconds([] {
-    _FOR(i, 1000000) { make_some_log(); }
-  });
-  std::cout << "cost " << cost << "ms\n";
 
   return 0;
 }

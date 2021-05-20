@@ -33,6 +33,26 @@ cc_test(
     srcs = ["zlog_test.cpp"],
     deps = [
         ":zlog",
+        "//base/util:common",
+    ],
+)
+
+cc_test(
+    name = "zlog_test_with_string_view",
+    srcs = ["zlog_test.cpp"],
+    copts = [
+        "-DENABLE_STRING_VIEW",
+    ],
+    deps = [
+        ":zlog",
+        "//base/util:common",
+    ],
+)
+
+cc_test(
+    name = "zlog_to_console_test",
+    srcs = ["zlog_to_console_test.cpp"],
+    deps = [
         ":zlog_to_console",
     ],
 )

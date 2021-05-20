@@ -874,12 +874,12 @@ bool typesafeFormat(LogString *log, const char *format, const char *func,
 }
 
 ScopedLog::ScopedLog(LogLevel level, const char *tag, const char *func,
-                     const char *file, int line, const char *name,
+                     const char *file, int line, const std::string &&name,
                      const std::string &args) {
   logger_ = Logger::instance(level);
   if (logger_ != NULL) {
     level_ = level;
-    name_ = name;
+    name_ = std::move(name);
     tag_ = tag;
     func_ = func;
     file_ = file;
