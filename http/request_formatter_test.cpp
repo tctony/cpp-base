@@ -22,9 +22,10 @@ void sendRequest(string host, Request& request) {
   cout << ">sent " << reqBuf.size() << " bytes request:\n"
        << reqBuf << std::endl;
 
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
   std::array<char, 8096> buffer;
-  asio::error_code ec;
-  auto nread = asio::read(socket, asio::buffer(buffer, sizeof(buffer)), ec);
+  auto nread = socket.read_some(asio::buffer(buffer, sizeof(buffer)));
   cout << ">got"
        << " " << nread << " byte response:\n";
   for (std::size_t i = 0; i < nread; ++i) {
