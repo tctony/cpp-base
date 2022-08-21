@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <functional>
+#include <optional>
 #include <queue>
 #include <tuple>
 #include <type_traits>
@@ -26,7 +27,9 @@ public:
 };
 
 template <typename T>
-class LinkedListNodeAdaptor : public LinkedListNodeInterface<T> {};
+class LinkedListNodeAdaptor : public LinkedListNodeInterface<T> {
+  using Pointer = T *;
+};
 
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -38,6 +41,7 @@ private:
 
 public:
   static inline AdaptorClass adaptor;
+  using NodePointer = typename AdaptorClass::Pointer;
   using NodeVisitor = std::function<void(T *)>;
   using NodePredicator = std::function<bool(T *)>;
 
@@ -106,6 +110,76 @@ public:
   static T *getNth(T *list, size_t n) {
     size_t count = n;
     return ThisClass::findFirst(list, [&count](T *node) { return !(count--); });
+  }
+
+  static std::tuple<NodePointer, size_t, NodePointer, size_t>
+  fastSlowWalk(NodePointer list) {
+    if (list == nullptr)
+      return {nullptr, 0, nullptr, 0};
+    if (LLA.next(list) == nullptr)
+      return {list, 1, nullptr, 0};
+
+    NodePointer fast = LLA.next(list), slow = list;
+    size_t fastStep = 2, slowStep = 1;
+    while (true) {
+      if (fast == slow)
+        break;
+
+      fast = LLA.next(fast);
+      fastStep += 1;
+      if (fast == nullptr)
+        break;
+
+      slow = LLA.next(slow);
+      slowStep += 1;
+      fast = LLA.next(fast);
+      fastStep += 1;
+      if (fast == nullptr)
+        break;
+    }
+    return {fast, fastStep, slow, slowStep};
+  }
+
+  static bool hasLoop(NodePointer list) {
+    NodePointer fast, slow;
+    std::tie(fast, std::ignore, slow, std::ignore) = fastSlowWalk(list);
+    if (slow == nullptr)
+      return false;
+    if (fast == nullptr)
+      return false;
+    return true;
+  }
+
+  static std::optional<std::tuple<NodePointer, size_t>>
+  getLoopEntry(NodePointer list) {
+    NodePointer fast, slow;
+    size_t slowStep = 0;
+    std::tie(fast, std::ignore, slow, slowStep) = fastSlowWalk(list);
+    if (slow == nullptr)
+      return {};
+    if (fast == nullptr)
+      return {};
+    if (slowStep == 1)
+      return std::make_tuple(list, 1);
+
+    size_t count = 1;
+    auto ptr = list;
+    slow = LLA.next(slow);
+    while (ptr != slow) {
+      ++count;
+      ptr = LLA.next(ptr);
+      slow = LLA.next(slow);
+    }
+    return std::make_tuple(ptr, count);
+  }
+
+  static size_t getLoopLength(NodePointer loopEntry) {
+    size_t length = 0;
+    ThisClass::findFirst(LLA.next(loopEntry), [&](NodePointer node) {
+      length += 1;
+      return node == loopEntry;
+    });
+    return length;
   }
 
   //-----

@@ -16,6 +16,8 @@ template <>
 class LinkedListNodeAdaptor<ListNode>
     : public LinkedListNodeInterface<ListNode> {
 public:
+  using Pointer = ListNode *;
+
   ListNode *next(const ListNode *ptr) const {
     if (ptr == nullptr)
       return nullptr;
@@ -162,7 +164,8 @@ TEST(linked_list, partition) {
 }
 
 auto deleter = &LinkedList::destroyList;
-using ListUniquePtr = std::unique_ptr<ListNode, decltype(deleter)>;
+using ListUniquePtr =
+    std::unique_ptr<ListNode, std::function<void(ListNode *)>>;
 
 TEST(linked_list, removeKthFromEnd) {
   auto nums = iotaNumbers(5);
@@ -188,4 +191,27 @@ TEST(linked_list, removeKthFromEnd) {
   head.reset(foo.next);
   ListUniquePtr result(listFromNums({1, 2, 3, 5}), deleter);
   ASSERT_TRUE(LinkedList::equal(head.get(), result.get()));
+}
+
+TEST(linked_list, loop) {
+  auto breakLoopBeforeDelete = [=](ListNode *head) {
+    auto end = LinkedList::getNth(head, 3);
+    end->next = nullptr;
+    deleter(head);
+  };
+  ListUniquePtr head(listFromNums(iotaNumbers(4)), breakLoopBeforeDelete);
+  // make loop
+  auto end = LinkedList::getNth(head.get(), 3);
+  end->next = LinkedList::getNth(head.get(), 1);
+
+  auto entryInfo = LinkedList::getLoopEntry(head.get());
+  ASSERT_TRUE(entryInfo.has_value());
+
+  auto loopEntry = std::get<0>(*entryInfo);
+  auto entryLength = std::get<1>(*entryInfo);
+  auto loopLength = LinkedList::getLoopLength(loopEntry);
+
+  ASSERT_EQ(loopEntry->val, 2);
+  ASSERT_EQ(entryLength, 2);
+  ASSERT_EQ(loopLength, 3);
 }
