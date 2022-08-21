@@ -68,12 +68,26 @@ public:
     }
   }
 
+  //-----
+
   static void forEach(T *list, NodeVisitor visitor) {
     auto ptr = list;
     while (ptr != nullptr) {
       visitor(ptr);
       ptr = LLA.next(ptr);
     }
+  }
+
+  static T *findFirst(T *list, NodePredicator predicator) {
+    auto ptr = list;
+    while (ptr != nullptr) {
+      if (predicator(ptr)) {
+        return ptr;
+      } else {
+        ptr = LLA.next(ptr);
+      }
+    }
+    return nullptr;
   }
 
   static size_t length(T *list) {
@@ -87,6 +101,29 @@ public:
     ThisClass::forEach(list, [&tail](T *node) { tail = node; });
     return tail;
   }
+
+  // start from 0th
+  static T *getNth(T *list, size_t n) {
+    size_t count = n;
+    return ThisClass::findFirst(list, [&count](T *node) { return !(count--); });
+  }
+
+  //-----
+
+  static T *removeNext(T *list) {
+    if (list == nullptr)
+      return nullptr;
+
+    auto next = LLA.next(list);
+    if (next == nullptr)
+      return nullptr;
+
+    LLA.setNext(list, LLA.next(next));
+    LLA.setNext(next, nullptr);
+    return next;
+  }
+
+  //-----
 
   static bool equal(const T *list, const T *otherList) {
     const T *p = list, *q = otherList;

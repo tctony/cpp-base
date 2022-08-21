@@ -160,3 +160,32 @@ TEST(linked_list, partition) {
 
   ASSERT_TRUE(LinkedList::equal(head.get(), other.get()));
 }
+
+auto deleter = &LinkedList::destroyList;
+using ListUniquePtr = std::unique_ptr<ListNode, decltype(deleter)>;
+
+TEST(linked_list, removeKthFromEnd) {
+  auto nums = iotaNumbers(5);
+  ListUniquePtr head(listFromNums(nums), deleter);
+
+  int k = 2; // 删除倒数第二个
+
+  // 头部加上虚拟节点
+  ListNode foo;
+  LinkedList::concat(&foo, head.get());
+  ListNode *p = &foo;
+  ListNode *q = LinkedList::getNth(head.get(), k);
+  LinkedList::findFirst(q, [&](ListNode *node) {
+    p = p->next;
+    if (node->next == nullptr) {
+      return true;
+    }
+    return false;
+  });
+  delete LinkedList::removeNext(p);
+
+  head.release();
+  head.reset(foo.next);
+  ListUniquePtr result(listFromNums({1, 2, 3, 5}), deleter);
+  ASSERT_TRUE(LinkedList::equal(head.get(), result.get()));
+}
