@@ -57,22 +57,53 @@ public:
 
   template <typename C>
   static void preOrderTravel(NodePointer root, C &ctx, NodeVisitor<C> visitor) {
+    ThisClass::travelWithOrder<C>(ePreOrderTravel, root, ctx, visitor);
+  }
+
+  template <typename C>
+  static void midOrderTravel(NodePointer root, C &ctx, NodeVisitor<C> visitor) {
+    ThisClass::travelWithOrder<C>(eMidOrderTravel, root, ctx, visitor);
+  }
+
+  template <typename C>
+  static void postOrderTravel(NodePointer root, C &ctx,
+                              NodeVisitor<C> visitor) {
+    ThisClass::travelWithOrder<C>(ePostOrderTravel, root, ctx, visitor);
+  }
+
+private:
+  enum TravelOrder {
+    ePreOrderTravel = 1,
+    eMidOrderTravel,
+    ePostOrderTravel,
+  };
+
+  template <typename C>
+  static void travelWithOrder(TravelOrder order, NodePointer root, C &ctx,
+                              NodeVisitor<C> visitor) {
     if (root) {
-      visitor(root, ctx);
+      if (order == ePreOrderTravel)
+        visitor(root, ctx);
 
       auto left = BTA.left(root);
       if (left) {
         ctx.moveToLeftChild();
-        preOrderTravel(left, ctx, visitor);
+        travelWithOrder(order, left, ctx, visitor);
         ctx.moveToParent();
       }
+
+      if (order == eMidOrderTravel)
+        visitor(root, ctx);
 
       auto right = BTA.right(root);
       if (right) {
         ctx.moveToRightChild();
-        preOrderTravel(right, ctx, visitor);
+        travelWithOrder(order, right, ctx, visitor);
         ctx.moveToParent();
       }
+
+      if (order == ePostOrderTravel)
+        visitor(root, ctx);
     }
   }
 };
