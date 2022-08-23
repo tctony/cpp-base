@@ -14,13 +14,12 @@ template <typename T> class LinkedListNodeInterface {
 public:
   virtual T *alloc() { return new T(); }
   virtual void dealloc(T *ptr) {
-    if (ptr == nullptr)
-      return;
-    delete ptr;
+    if (ptr != nullptr)
+      delete ptr;
   }
   // instantiation should implement following methods
   virtual T *next(const T *ptr) const = 0;
-  virtual void setNext(T *ptr, T *next) const = 0;
+  virtual void setNext(T *ptr, T *next) = 0;
   virtual bool less(const T *left, const T *right) const = 0;
   virtual bool greater(const T *left, const T *right) const = 0;
   virtual bool equal(const T *left, const T *right) const = 0;
@@ -28,6 +27,7 @@ public:
 
 template <typename T>
 class LinkedListNodeAdaptor : public LinkedListNodeInterface<T> {
+public:
   using Pointer = T *;
 };
 

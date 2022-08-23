@@ -24,7 +24,7 @@ public:
     return ptr->next;
   }
 
-  void setNext(ListNode *ptr, ListNode *next) const {
+  void setNext(ListNode *ptr, ListNode *next) {
     if (ptr == nullptr)
       return;
     ptr->next = next;
