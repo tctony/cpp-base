@@ -30,6 +30,10 @@ public:
 
 class BinaryTreeTravelContext {
 public:
+  BinaryTreeTravelContext() = default;
+  BinaryTreeTravelContext(const BinaryTreeTravelContext &) = delete;
+  BinaryTreeTravelContext &operator=(const BinaryTreeTravelContext &) = delete;
+
   std::vector<bool> path;
   virtual void moveToLeftChild() { path.push_back(false); }
   virtual void moveToRightChild() { path.push_back(true); }

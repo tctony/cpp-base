@@ -51,7 +51,7 @@ TEST(binary_tree, demo) {
   TreeNode *root = nullptr;
   BinaryTree::TravelContext context;
   BinaryTree::preOrderTravel<decltype(context)>(root, context,
-                                                [&](TreeNode *node, auto ctx) {
+                                                [&](TreeNode *node, auto &ctx) {
                                                   // do something
                                                 });
 }
@@ -64,7 +64,7 @@ std::vector<std::vector<std::string>> printTree(TreeNode *root) {
 
   BinaryTree::TravelContext context;
   BinaryTree::preOrderTravel<decltype(context)>(
-      root, context, [&](TreeNode *node, auto ctx) {
+      root, context, [&](TreeNode *node, auto &ctx) {
         nodes.emplace_back(ctx.path.size(), ctx.path, node->val);
         height = std::max(height, (int)ctx.path.size());
       });
