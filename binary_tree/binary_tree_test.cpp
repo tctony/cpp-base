@@ -49,11 +49,18 @@ using BinaryTree = base::BinaryTree<TreeNode>;
 
 TEST(binary_tree, demo) {
   TreeNode *root = nullptr;
-  BinaryTree::TravelContext context;
+
+  BinaryTree::DFSTravelContext context;
   BinaryTree::preOrderTravel<decltype(context)>(root, context,
                                                 [&](TreeNode *node, auto &ctx) {
-                                                  // do something
+                                                  // preorder dfs travel
                                                 });
+
+  BinaryTree::BFSTravelContext bfsContext;
+  BinaryTree::bfsTravel<decltype(bfsContext)>(root, bfsContext,
+                                              [&](TreeNode *node, auto &ctx) {
+                                                // bfs travel
+                                              });
 }
 
 // https://leetcode.cn/problems/print-binary-tree/
@@ -62,7 +69,7 @@ std::vector<std::vector<std::string>> printTree(TreeNode *root) {
   std::vector<NodeInfo> nodes;
   int height = 0;
 
-  BinaryTree::TravelContext context;
+  BinaryTree::DFSTravelContext context;
   BinaryTree::preOrderTravel<decltype(context)>(
       root, context, [&](TreeNode *node, auto &ctx) {
         nodes.emplace_back(ctx.path.size(), ctx.path, node->val);
